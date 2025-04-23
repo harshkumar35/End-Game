@@ -1,8 +1,10 @@
 "use client"
 
-import { useState } from "react"
+import type React from "react"
+
+import { useState, useRef } from "react"
 import { useRouter } from "next/navigation"
-import { Camera, Pencil } from "lucide-react"
+import { Camera, Pencil, Loader2 } from "lucide-react"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
@@ -10,6 +12,7 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { useSupabase } from "@/lib/supabase/provider"
 import { toast } from "@/components/ui/use-toast"
+import { uploadProfileImage } from "@/lib/utils/upload-image"
 
 interface ProfileHeaderProps {
   user: any
@@ -23,6 +26,42 @@ export function ProfileHeader({ user, lawyerProfile }: ProfileHeaderProps) {
   const [fullName, setFullName] = useState(user?.full_name || "")
   const [headline, setHeadline] = useState(lawyerProfile?.headline || "")
   const [isLoading, setIsLoading] = useState(false)
+  const [avatarUrl, setAvatarUrl] = useState(user?.avatar_url || "")
+  const fileInputRef = useRef<HTMLInputElement>(null)
+
+  const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0]
+    if (!file) return
+
+    setIsLoading(true)
+    try {
+      const imageUrl = await uploadProfileImage(file, user.id)
+
+      if (imageUrl) {
+        // Update the user record with the new avatar URL
+        const { error } = await supabase.from("users").update({ avatar_url: imageUrl }).eq("id", user.id)
+
+        if (error) throw error
+
+        setAvatarUrl(imageUrl)
+        toast({
+          title: "Profile picture updated",
+          description: "Your profile picture has been updated successfully.",
+        })
+
+        router.refresh()
+      }
+    } catch (error: any) {
+      console.error("Error updating profile picture:", error)
+      toast({
+        title: "Error",
+        description: error.message || "Failed to update profile picture. Please try again.",
+        variant: "destructive",
+      })
+    } finally {
+      setIsLoading(false)
+    }
+  }
 
   const handleSave = async () => {
     setIsLoading(true)
@@ -69,19 +108,19 @@ export function ProfileHeader({ user, lawyerProfile }: ProfileHeaderProps) {
           <div className="absolute left-6 -bottom-12">
             <div className="relative">
               <Avatar className="h-24 w-24 border-4 border-background">
-                <AvatarImage src="/placeholder.svg" alt={user?.full_name || "User"} />
+                <AvatarImage src={avatarUrl || "/placeholder.svg"} alt={user?.full_name || "User"} />
                 <AvatarFallback className="text-2xl">{user?.full_name?.charAt(0) || "U"}</AvatarFallback>
               </Avatar>
               <Button
                 size="icon"
                 variant="secondary"
                 className="absolute bottom-0 right-0 h-8 w-8 rounded-full"
-                onClick={() =>
-                  toast({ title: "Coming soon", description: "Profile picture upload will be available soon." })
-                }
+                onClick={() => fileInputRef.current?.click()}
+                disabled={isLoading}
               >
-                <Camera className="h-4 w-4" />
+                {isLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Camera className="h-4 w-4" />}
               </Button>
+              <input type="file" ref={fileInputRef} className="hidden" accept="image/*" onChange={handleImageUpload} />
             </div>
           </div>
           <div className="absolute right-6 bottom-6">

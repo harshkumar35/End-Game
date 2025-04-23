@@ -58,14 +58,20 @@ export function Navbar() {
       active: pathname === "/",
     },
     {
-      href: "/lawyers",
-      label: "Find Lawyers",
-      active: pathname === "/lawyers",
-    },
-    {
-      href: "/cases",
-      label: "Browse Cases",
-      active: pathname === "/cases",
+      href: "#",
+      label: "Services",
+      active: pathname === "/lawyers" || pathname === "/cases",
+      dropdown: true,
+      items: [
+        {
+          href: "/lawyers",
+          label: "Find Lawyers",
+        },
+        {
+          href: "/cases",
+          label: "Browse Cases",
+        },
+      ],
     },
     {
       href: "/community",
@@ -92,18 +98,40 @@ export function Navbar() {
             <span className="text-2xl font-bold gradient-text">LegalSathi</span>
           </Link>
           <nav className="hidden md:flex gap-6">
-            {routes.map((route) => (
-              <Link
-                key={route.href}
-                href={route.href}
-                className={cn(
-                  "text-sm font-medium transition-colors hover:text-primary",
-                  route.active ? "text-foreground" : "text-muted-foreground",
-                )}
-              >
-                {route.label}
-              </Link>
-            ))}
+            {routes.map((route) =>
+              route.dropdown ? (
+                <DropdownMenu key={route.href}>
+                  <DropdownMenuTrigger asChild>
+                    <button
+                      className={cn(
+                        "flex items-center text-sm font-medium transition-colors hover:text-primary",
+                        route.active ? "text-foreground" : "text-muted-foreground",
+                      )}
+                    >
+                      {route.label} <ChevronDown className="ml-1 h-4 w-4" />
+                    </button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="start" className="w-48">
+                    {route.items?.map((item) => (
+                      <DropdownMenuItem key={item.href} asChild>
+                        <Link href={item.href}>{item.label}</Link>
+                      </DropdownMenuItem>
+                    ))}
+                  </DropdownMenuContent>
+                </DropdownMenu>
+              ) : (
+                <Link
+                  key={route.href}
+                  href={route.href}
+                  className={cn(
+                    "text-sm font-medium transition-colors hover:text-primary",
+                    route.active ? "text-foreground" : "text-muted-foreground",
+                  )}
+                >
+                  {route.label}
+                </Link>
+              ),
+            )}
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <button className="flex items-center text-sm font-medium text-muted-foreground hover:text-primary">
@@ -184,19 +212,37 @@ export function Navbar() {
       {isMenuOpen && (
         <div className="md:hidden p-4 pt-0 bg-background border-b">
           <nav className="flex flex-col gap-4 py-4">
-            {routes.map((route) => (
-              <Link
-                key={route.href}
-                href={route.href}
-                className={cn(
-                  "text-sm font-medium transition-colors hover:text-primary",
-                  route.active ? "text-foreground" : "text-muted-foreground",
-                )}
-                onClick={() => setIsMenuOpen(false)}
-              >
-                {route.label}
-              </Link>
-            ))}
+            {routes.map((route) =>
+              route.dropdown ? (
+                <div key={route.href} className="space-y-2">
+                  <p className="text-sm font-medium">{route.label}</p>
+                  <div className="pl-4 flex flex-col gap-2">
+                    {route.items?.map((item) => (
+                      <Link
+                        key={item.href}
+                        href={item.href}
+                        className="text-sm text-muted-foreground hover:text-primary"
+                        onClick={() => setIsMenuOpen(false)}
+                      >
+                        {item.label}
+                      </Link>
+                    ))}
+                  </div>
+                </div>
+              ) : (
+                <Link
+                  key={route.href}
+                  href={route.href}
+                  className={cn(
+                    "text-sm font-medium transition-colors hover:text-primary",
+                    route.active ? "text-foreground" : "text-muted-foreground",
+                  )}
+                  onClick={() => setIsMenuOpen(false)}
+                >
+                  {route.label}
+                </Link>
+              ),
+            )}
             <div className="py-2">
               <p className="text-sm font-medium mb-2">Resources</p>
               <div className="pl-4 flex flex-col gap-2">
