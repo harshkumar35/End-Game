@@ -3,17 +3,17 @@
 import Link from "next/link"
 import { usePathname } from "next/navigation"
 import { cn } from "@/lib/utils"
-import { Button } from "@/components/ui/button"
 import {
   LayoutDashboard,
   FileText,
   MessageSquare,
-  User,
+  Users,
   Settings,
+  PenTool,
   Briefcase,
-  Search,
-  Star,
-  PenSquare,
+  FileCheck,
+  FilePlus,
+  Newspaper,
 } from "lucide-react"
 
 interface DashboardNavProps {
@@ -23,112 +23,92 @@ interface DashboardNavProps {
 export function DashboardNav({ userRole }: DashboardNavProps) {
   const pathname = usePathname()
 
-  const clientRoutes = [
+  const commonLinks = [
     {
       href: "/dashboard",
+      label: "Overview",
       icon: LayoutDashboard,
-      title: "Overview",
     },
     {
+      href: "/dashboard/messages",
+      label: "Messages",
+      icon: MessageSquare,
+    },
+    {
+      href: "/dashboard/new-post",
+      label: "Create Post",
+      icon: PenTool,
+    },
+    {
+      href: "/legal-news",
+      label: "Legal News",
+      icon: Newspaper,
+    },
+  ]
+
+  const clientLinks = [
+    {
       href: "/dashboard/post-case",
-      icon: FileText,
-      title: "Post a Case",
+      label: "Post a Case",
+      icon: FilePlus,
     },
     {
       href: "/dashboard/my-cases",
+      label: "My Cases",
       icon: Briefcase,
-      title: "My Cases",
     },
     {
-      href: "/dashboard/find-lawyers",
-      icon: Search,
-      title: "Find Lawyers",
-    },
-    {
-      href: "/dashboard/messages",
-      icon: MessageSquare,
-      title: "Messages",
-    },
-    {
-      href: "/dashboard/new-post",
-      icon: PenSquare,
-      title: "Create Post",
-    },
-    {
-      href: "/dashboard/profile",
-      icon: User,
-      title: "Profile",
-    },
-    {
-      href: "/dashboard/settings",
-      icon: Settings,
-      title: "Settings",
+      href: "/dashboard/lawyers",
+      label: "Find Lawyers",
+      icon: Users,
     },
   ]
 
-  const lawyerRoutes = [
-    {
-      href: "/dashboard",
-      icon: LayoutDashboard,
-      title: "Overview",
-    },
+  const lawyerLinks = [
     {
       href: "/dashboard/cases",
-      icon: Briefcase,
-      title: "Browse Cases",
+      label: "Browse Cases",
+      icon: FileText,
     },
     {
       href: "/dashboard/my-applications",
-      icon: FileText,
-      title: "My Applications",
+      label: "My Applications",
+      icon: FileCheck,
     },
     {
-      href: "/dashboard/messages",
-      icon: MessageSquare,
-      title: "Messages",
-    },
-    {
-      href: "/dashboard/new-post",
-      icon: PenSquare,
-      title: "Create Post",
-    },
-    {
-      href: "/dashboard/reviews",
-      icon: Star,
-      title: "Reviews",
-    },
-    {
-      href: "/dashboard/profile",
-      icon: User,
-      title: "Profile",
-    },
-    {
-      href: "/dashboard/settings",
-      icon: Settings,
-      title: "Settings",
+      href: "/dashboard/document-generator",
+      label: "Document Generator",
+      icon: FilePlus,
     },
   ]
 
-  const routes = userRole === "lawyer" ? lawyerRoutes : clientRoutes
+  const links = [...commonLinks, ...(userRole === "lawyer" ? lawyerLinks : clientLinks)]
 
   return (
-    <nav className="grid gap-2 py-2">
-      {routes.map((route) => (
-        <Button
-          key={route.href}
-          variant={pathname === route.href ? "secondary" : "ghost"}
+    <nav className="grid items-start gap-2">
+      {links.map((link) => (
+        <Link
+          key={link.href}
+          href={link.href}
           className={cn(
-            "justify-start",
-            pathname === route.href ? "bg-muted hover:bg-muted" : "hover:bg-transparent hover:underline",
+            "group flex items-center rounded-md px-3 py-2 text-sm font-medium hover:bg-accent hover:text-accent-foreground",
+            pathname === link.href ? "bg-accent" : "transparent",
           )}
-          asChild
         >
-          <Link href={route.href}>
-            <route.icon className="mr-2 h-4 w-4" />
-            {route.title}
-          </Link>
-        </Button>
+          <link.icon className="mr-2 h-4 w-4" />
+          <span>{link.label}</span>
+        </Link>
       ))}
+      <Link
+        href="/settings"
+        className={cn(
+          "group flex items-center rounded-md px-3 py-2 text-sm font-medium hover:bg-accent hover:text-accent-foreground",
+          pathname === "/settings" ? "bg-accent" : "transparent",
+        )}
+      >
+        <Settings className="mr-2 h-4 w-4" />
+        <span>Settings</span>
+      </Link>
     </nav>
   )
 }

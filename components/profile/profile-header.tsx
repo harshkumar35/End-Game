@@ -13,6 +13,7 @@ import { Label } from "@/components/ui/label"
 import { useSupabase } from "@/lib/supabase/provider"
 import { toast } from "@/components/ui/use-toast"
 import { uploadProfileImage } from "@/lib/utils/upload-image"
+import { useEffect } from "react"
 
 interface ProfileHeaderProps {
   user: any
@@ -28,6 +29,12 @@ export function ProfileHeader({ user, lawyerProfile }: ProfileHeaderProps) {
   const [isLoading, setIsLoading] = useState(false)
   const [avatarUrl, setAvatarUrl] = useState(user?.avatar_url || "")
   const fileInputRef = useRef<HTMLInputElement>(null)
+
+  useEffect(() => {
+    if (user && user.avatar_url) {
+      setAvatarUrl(user.avatar_url)
+    }
+  }, [user])
 
   const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0]

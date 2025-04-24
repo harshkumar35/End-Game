@@ -31,6 +31,31 @@ export function ChatInterface({ recipientId, recipientName }: ChatInterfaceProps
   const [isLoading, setIsLoading] = useState(false)
   const messagesEndRef = useRef<HTMLDivElement>(null)
 
+  const markMessagesAsRead = async () => {
+    if (!user || !recipientId) return
+
+    try {
+      // Mark all messages from this recipient as read
+      const { error } = await supabase
+        .from("messages")
+        .update({ is_read: true })
+        .eq("sender_id", recipientId)
+        .eq("receiver_id", user.id)
+        .eq("is_read", false)
+
+      if (error) throw error
+    } catch (error) {
+      console.error("Error marking messages as read:", error)
+    }
+  }
+
+  // Call markMessagesAsRead when the component mounts or recipient changes
+  useEffect(() => {
+    if (user && recipientId) {
+      markMessagesAsRead()
+    }
+  }, [user, recipientId])
+
   // Fetch messages on component mount
   useEffect(() => {
     if (!user || !recipientId) return
@@ -49,6 +74,9 @@ export function ChatInterface({ recipientId, recipientName }: ChatInterfaceProps
       }
 
       setMessages(data || [])
+
+      // Mark received messages as read
+      markMessagesAsRead()
     }
 
     fetchMessages()

@@ -38,6 +38,10 @@ export function MobileNav({ userRole }: MobileNavProps) {
       title: "Messages",
     },
     {
+      href: "/legal-news",
+      title: "Legal News",
+    },
+    {
       href: "/dashboard/profile",
       title: "Profile",
     },
@@ -63,6 +67,10 @@ export function MobileNav({ userRole }: MobileNavProps) {
     {
       href: "/dashboard/messages",
       title: "Messages",
+    },
+    {
+      href: "/legal-news",
+      title: "Legal News",
     },
     {
       href: "/dashboard/reviews",

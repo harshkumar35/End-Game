@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import Link from "next/link"
 import { formatDistanceToNow } from "date-fns"
 import { Heart, MessageCircle, Share2 } from "lucide-react"
@@ -32,6 +32,33 @@ export function PostCard({ post }: PostCardProps) {
   const { supabase, user } = useSupabase()
   const [likes, setLikes] = useState(post.likes)
   const [isLiking, setIsLiking] = useState(false)
+  const [hasLiked, setHasLiked] = useState(false)
+
+  useEffect(() => {
+    if (!user) return
+
+    // Check if the user has already liked this post
+    const checkLikeStatus = async () => {
+      try {
+        const { data, error } = await supabase
+          .from("post_likes")
+          .select("*")
+          .eq("user_id", user.id)
+          .eq("post_id", post.id)
+          .single()
+
+        if (error && error.code !== "PGSQL_ERROR") {
+          console.error("Error checking like status:", error)
+        }
+
+        setHasLiked(!!data)
+      } catch (err) {
+        console.error("Error checking like status:", err)
+      }
+    }
+
+    checkLikeStatus()
+  }, [supabase, user, post.id])
 
   const handleLike = async () => {
     if (!user) {
@@ -43,8 +70,26 @@ export function PostCard({ post }: PostCardProps) {
       return
     }
 
+    if (hasLiked) {
+      // User has already liked this post
+      toast({
+        title: "Already liked",
+        description: "You've already liked this post",
+      })
+      return
+    }
+
     setIsLiking(true)
     try {
+      // First, record the like in the post_likes table
+      const { error: likeError } = await supabase.from("post_likes").insert({
+        user_id: user.id,
+        post_id: post.id,
+      })
+
+      if (likeError) throw likeError
+
+      // Then update the post's like count
       const { error } = await supabase
         .from("posts")
         .update({ likes: likes + 1 })
@@ -53,6 +98,7 @@ export function PostCard({ post }: PostCardProps) {
       if (error) throw error
 
       setLikes(likes + 1)
+      setHasLiked(true)
       toast({
         title: "Post liked",
         description: "You liked this post",
@@ -106,11 +152,11 @@ export function PostCard({ post }: PostCardProps) {
           <Button
             variant="ghost"
             size="sm"
-            className="gap-1 text-muted-foreground"
+            className={`gap-1 ${hasLiked ? "text-primary" : "text-muted-foreground"}`}
             onClick={handleLike}
-            disabled={isLiking}
+            disabled={isLiking || hasLiked}
           >
-            <Heart className="h-4 w-4" />
+            <Heart className={`h-4 w-4 ${hasLiked ? "fill-primary" : ""}`} />
             <span>{likes}</span>
           </Button>
           <Button variant="ghost" size="sm" className="gap-1 text-muted-foreground" asChild>

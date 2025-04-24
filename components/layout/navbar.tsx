@@ -60,7 +60,7 @@ export function Navbar() {
     {
       href: "#",
       label: "Services",
-      active: pathname === "/lawyers" || pathname === "/cases",
+      active: pathname === "/lawyers" || pathname === "/cases" || pathname === "/legal-news",
       dropdown: true,
       items: [
         {
@@ -70,6 +70,10 @@ export function Navbar() {
         {
           href: "/cases",
           label: "Browse Cases",
+        },
+        {
+          href: "/legal-news",
+          label: "Legal News",
         },
       ],
     },
