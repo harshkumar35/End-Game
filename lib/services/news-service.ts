@@ -18,7 +18,7 @@ export interface NewsResponse {
   totalResults: number
   results: NewsArticle[]
   nextPage?: string
-  message?: string
+  message?: string // Added to handle error messages
 }
 
 export async function fetchLegalNews(language = "en", page?: string): Promise<NewsResponse> {
@@ -36,7 +36,6 @@ export async function fetchLegalNews(language = "en", page?: string): Promise<Ne
 
     // Check if the response contains an error message
     if (data.status === "error") {
-      // Show toast with the error message
       toast({
         title: "Error fetching news",
         description: data.message || "Failed to load the latest legal news. Please try again later.",
@@ -45,9 +44,9 @@ export async function fetchLegalNews(language = "en", page?: string): Promise<Ne
 
       return {
         status: "error",
+        message: data.message,
         totalResults: 0,
         results: [],
-        message: data.message,
       }
     }
 
@@ -67,9 +66,9 @@ export async function fetchLegalNews(language = "en", page?: string): Promise<Ne
 
     return {
       status: "error",
+      message: "An unexpected error occurred",
       totalResults: 0,
       results: [],
-      message: error instanceof Error ? error.message : "Unknown error occurred",
     }
   }
 }

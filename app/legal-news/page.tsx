@@ -6,11 +6,12 @@ import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Skeleton } from "@/components/ui/skeleton"
-import { ExternalLink, Clock, User, Tag, ChevronRight } from "lucide-react"
+import { ExternalLink, Clock, User, Tag, ChevronRight, AlertTriangle, RefreshCw } from "lucide-react"
 import { format } from "date-fns"
 import Link from "next/link"
 import Image from "next/image"
 import { Badge } from "@/components/ui/badge"
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
 
 export default function LegalNewsPage() {
   const [englishNews, setEnglishNews] = useState<NewsResponse | null>(null)
@@ -20,11 +21,19 @@ export default function LegalNewsPage() {
   const [nextPageEnglish, setNextPageEnglish] = useState<string | undefined>()
   const [nextPageHindi, setNextPageHindi] = useState<string | undefined>()
   const [activeTab, setActiveTab] = useState("english")
+  const [errorEnglish, setErrorEnglish] = useState<string | null>(null)
+  const [errorHindi, setErrorHindi] = useState<string | null>(null)
 
   const loadEnglishNews = async (page?: string) => {
     setIsLoadingEnglish(true)
+    setErrorEnglish(null)
     try {
       const news = await fetchLegalNews("en", page)
+      if (news.status === "error") {
+        setErrorEnglish(news.message || "Failed to load news")
+        return
+      }
+
       if (page) {
         setEnglishNews((prev) => ({
           ...news,
@@ -34,6 +43,9 @@ export default function LegalNewsPage() {
         setEnglishNews(news)
       }
       setNextPageEnglish(news.nextPage)
+    } catch (error) {
+      setErrorEnglish("An unexpected error occurred")
+      console.error("Error loading English news:", error)
     } finally {
       setIsLoadingEnglish(false)
     }
@@ -41,8 +53,14 @@ export default function LegalNewsPage() {
 
   const loadHindiNews = async (page?: string) => {
     setIsLoadingHindi(true)
+    setErrorHindi(null)
     try {
       const news = await fetchLegalNews("hi", page)
+      if (news.status === "error") {
+        setErrorHindi(news.message || "Failed to load news")
+        return
+      }
+
       if (page) {
         setHindiNews((prev) => ({
           ...news,
@@ -52,6 +70,9 @@ export default function LegalNewsPage() {
         setHindiNews(news)
       }
       setNextPageHindi(news.nextPage)
+    } catch (error) {
+      setErrorHindi("An unexpected error occurred")
+      console.error("Error loading Hindi news:", error)
     } finally {
       setIsLoadingHindi(false)
     }
@@ -177,6 +198,28 @@ export default function LegalNewsPage() {
         </Card>
       ))
 
+  const renderErrorMessage = (error: string, language: string, retryFunction: () => void) => (
+    <Alert variant="destructive" className="mb-6">
+      <AlertTriangle className="h-4 w-4" />
+      <AlertTitle>Error loading news</AlertTitle>
+      <AlertDescription className="flex flex-col gap-4">
+        <p>{error}</p>
+        <Button
+          variant="outline"
+          size="sm"
+          className="w-fit"
+          onClick={retryFunction}
+          disabled={language === "en" ? isLoadingEnglish : isLoadingHindi}
+        >
+          <RefreshCw
+            className={`mr-2 h-4 w-4 ${(language === "en" ? isLoadingEnglish : isLoadingHindi) ? "animate-spin" : ""}`}
+          />
+          Try Again
+        </Button>
+      </AlertDescription>
+    </Alert>
+  )
+
   return (
     <div className="container py-8">
       <div className="space-y-4 mb-8">
@@ -191,6 +234,8 @@ export default function LegalNewsPage() {
         </TabsList>
 
         <TabsContent value="english" className="space-y-6">
+          {errorEnglish && renderErrorMessage(errorEnglish, "en", () => loadEnglishNews())}
+
           {isLoadingEnglish && !englishNews ? (
             renderSkeleton()
           ) : englishNews?.results && englishNews.results.length > 0 ? (
@@ -206,24 +251,19 @@ export default function LegalNewsPage() {
                 </div>
               )}
             </>
-          ) : (
+          ) : !errorEnglish ? (
             <div className="text-center py-12">
-              <h3 className="text-lg font-medium mb-2">
-                {englishNews?.message ? "Error Loading News" : "No news available"}
-              </h3>
+              <h3 className="text-lg font-medium mb-2">No news available</h3>
               <p className="text-muted-foreground mb-6">
-                {englishNews?.message || "We couldn't find any legal news at the moment. Please check back later."}
+                We couldn't find any legal news at the moment. Please check back later.
               </p>
-              {englishNews?.message && (
-                <Button onClick={() => loadEnglishNews()} className="gradient-bg">
-                  Try Again
-                </Button>
-              )}
             </div>
-          )}
+          ) : null}
         </TabsContent>
 
         <TabsContent value="hindi" className="space-y-6">
+          {errorHindi && renderErrorMessage(errorHindi, "hi", () => loadHindiNews())}
+
           {isLoadingHindi && !hindiNews ? (
             renderSkeleton()
           ) : hindiNews?.results && hindiNews.results.length > 0 ? (
@@ -239,19 +279,12 @@ export default function LegalNewsPage() {
                 </div>
               )}
             </>
-          ) : (
+          ) : !errorHindi ? (
             <div className="text-center py-12">
-              <h3 className="text-lg font-medium mb-2">{hindiNews?.message ? "त्रुटि हुई" : "कोई समाचार उपलब्ध नहीं है"}</h3>
-              <p className="text-muted-foreground mb-6">
-                {hindiNews?.message || "हमें इस समय कोई कानूनी समाचार नहीं मिला। कृपया बाद में फिर से जांचें।"}
-              </p>
-              {hindiNews?.message && (
-                <Button onClick={() => loadHindiNews()} className="gradient-bg">
-                  पुनः प्रयास करें
-                </Button>
-              )}
+              <h3 className="text-lg font-medium mb-2">कोई समाचार उपलब्ध नहीं है</h3>
+              <p className="text-muted-foreground mb-6">हमें इस समय कोई कानूनी समाचार नहीं मिला। कृपया बाद में फिर से जांचें।</p>
             </div>
-          )}
+          ) : null}
         </TabsContent>
       </Tabs>
     </div>
