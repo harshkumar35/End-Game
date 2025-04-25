@@ -208,10 +208,17 @@ export default function LegalNewsPage() {
             </>
           ) : (
             <div className="text-center py-12">
-              <h3 className="text-lg font-medium mb-2">No news available</h3>
+              <h3 className="text-lg font-medium mb-2">
+                {englishNews?.message ? "Error Loading News" : "No news available"}
+              </h3>
               <p className="text-muted-foreground mb-6">
-                We couldn't find any legal news at the moment. Please check back later.
+                {englishNews?.message || "We couldn't find any legal news at the moment. Please check back later."}
               </p>
+              {englishNews?.message && (
+                <Button onClick={() => loadEnglishNews()} className="gradient-bg">
+                  Try Again
+                </Button>
+              )}
             </div>
           )}
         </TabsContent>
@@ -234,8 +241,15 @@ export default function LegalNewsPage() {
             </>
           ) : (
             <div className="text-center py-12">
-              <h3 className="text-lg font-medium mb-2">कोई समाचार उपलब्ध नहीं है</h3>
-              <p className="text-muted-foreground mb-6">हमें इस समय कोई कानूनी समाचार नहीं मिला। कृपया बाद में फिर से जांचें।</p>
+              <h3 className="text-lg font-medium mb-2">{hindiNews?.message ? "त्रुटि हुई" : "कोई समाचार उपलब्ध नहीं है"}</h3>
+              <p className="text-muted-foreground mb-6">
+                {hindiNews?.message || "हमें इस समय कोई कानूनी समाचार नहीं मिला। कृपया बाद में फिर से जांचें।"}
+              </p>
+              {hindiNews?.message && (
+                <Button onClick={() => loadHindiNews()} className="gradient-bg">
+                  पुनः प्रयास करें
+                </Button>
+              )}
             </div>
           )}
         </TabsContent>

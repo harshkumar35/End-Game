@@ -23,10 +23,36 @@ export async function GET(request: NextRequest) {
 
     const response = await fetch(`${BASE_URL}?${params.toString()}`)
 
+    // Check if the response is ok before trying to parse JSON
     if (!response.ok) {
-      throw new Error(`Failed to fetch news: ${response.status} ${response.statusText}`)
+      // Handle rate limiting specifically
+      if (response.status === 429) {
+        return NextResponse.json(
+          {
+            status: "error",
+            message: "Rate limit exceeded. Please try again later.",
+            totalResults: 0,
+            results: [],
+          },
+          { status: 429 },
+        )
+      }
+
+      // Handle other errors
+      const errorText = await response.text()
+      return NextResponse.json(
+        {
+          status: "error",
+          message: `API error: ${response.status} ${response.statusText}`,
+          details: errorText,
+          totalResults: 0,
+          results: [],
+        },
+        { status: response.status },
+      )
     }
 
+    // Only try to parse JSON if the response is ok
     const data = await response.json()
 
     return NextResponse.json(data)
@@ -35,6 +61,7 @@ export async function GET(request: NextRequest) {
     return NextResponse.json(
       {
         status: "error",
+        message: error instanceof Error ? error.message : "Unknown error occurred",
         totalResults: 0,
         results: [],
       },
