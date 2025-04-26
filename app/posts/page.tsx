@@ -1,0 +1,258 @@
+"use client"
+
+import { createServerSupabaseClient } from "@/lib/supabase/server"
+import { formatDistanceToNow } from "date-fns"
+import { Search } from "lucide-react"
+import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card"
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
+import { Badge } from "@/components/ui/badge"
+import { Button } from "@/components/ui/button"
+import { Input } from "@/components/ui/input"
+import Link from "next/link"
+import Image from "next/image"
+
+export const dynamic = "force-dynamic"
+
+export default async function PostsPage({
+  searchParams,
+}: {
+  searchParams: { role?: string; tag?: string; search?: string; sort?: string }
+}) {
+  const supabase = createServerSupabaseClient()
+
+  // Build query
+  let query = supabase.from("posts").select(`
+    *,
+    user:user_id (
+      id,
+      full_name,
+      email,
+      avatar_url
+    )
+  `)
+
+  // Apply role filter
+  if (searchParams.role && searchParams.role !== "all") {
+    query = query.eq("role", searchParams.role)
+  }
+
+  // Apply tag filter
+  if (searchParams.tag && searchParams.tag !== "all") {
+    query = query.contains("tags", [searchParams.tag])
+  }
+
+  // Apply search filter
+  if (searchParams.search) {
+    query = query.or(`title.ilike.%${searchParams.search}%,content.ilike.%${searchParams.search}%`)
+  }
+
+  // Apply sorting
+  if (searchParams.sort === "likes") {
+    query = query.order("likes", { ascending: false })
+  } else {
+    // Default to most recent
+    query = query.order("created_at", { ascending: false })
+  }
+
+  const { data: posts, error } = await query
+
+  if (error) {
+    console.error("Error fetching posts:", error)
+  }
+
+  // Get all unique tags from posts for filter
+  const allTags: string[] = []
+  posts?.forEach((post) => {
+    if (post.tags && Array.isArray(post.tags)) {
+      post.tags.forEach((tag) => {
+        if (!allTags.includes(tag)) {
+          allTags.push(tag)
+        }
+      })
+    }
+  })
+
+  // Get current user session
+  const {
+    data: { session },
+  } = await supabase.auth.getSession()
+
+  return (
+    <div className="container py-8">
+      <div className="space-y-4 mb-8">
+        <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+          <div>
+            <h1 className="text-3xl font-bold tracking-tight">Posts</h1>
+            <p className="text-muted-foreground">Insights, questions, and discussions from our legal community</p>
+          </div>
+          {session && (
+            <Button asChild className="gradient-bg">
+              <Link href="/dashboard/create-post">Create Post</Link>
+            </Button>
+          )}
+        </div>
+
+        <div className="flex flex-col md:flex-row gap-4 mb-6 flex-wrap">
+          <div className="w-full md:w-auto md:flex-1">
+            <form action="/posts" method="get" className="relative">
+              <Input
+                name="search"
+                placeholder="Search posts..."
+                defaultValue={searchParams.search || ""}
+                className="w-full"
+              />
+              <input type="hidden" name="role" value={searchParams.role || ""} />
+              <input type="hidden" name="tag" value={searchParams.tag || ""} />
+              <input type="hidden" name="sort" value={searchParams.sort || ""} />
+              <Button type="submit" size="sm" className="absolute right-1 top-1 h-7">
+                <Search className="h-4 w-4" />
+              </Button>
+            </form>
+          </div>
+
+          <div className="flex flex-wrap gap-2">
+            <div className="w-full md:w-auto">
+              <form action="/posts" method="get">
+                <input type="hidden" name="search" value={searchParams.search || ""} />
+                <input type="hidden" name="tag" value={searchParams.tag || ""} />
+                <input type="hidden" name="sort" value={searchParams.sort || ""} />
+                <select
+                  name="role"
+                  defaultValue={searchParams.role || "all"}
+                  onChange={(e) => {
+                    e.target.form?.submit()
+                  }}
+                  className="flex h-10 w-[160px] items-center justify-between rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+                >
+                  <option value="all">All Roles</option>
+                  <option value="lawyer">Lawyers</option>
+                  <option value="client">Clients</option>
+                </select>
+              </form>
+            </div>
+
+            {allTags.length > 0 && (
+              <div className="w-full md:w-auto">
+                <form action="/posts" method="get">
+                  <input type="hidden" name="search" value={searchParams.search || ""} />
+                  <input type="hidden" name="role" value={searchParams.role || ""} />
+                  <input type="hidden" name="sort" value={searchParams.sort || ""} />
+                  <select
+                    name="tag"
+                    defaultValue={searchParams.tag || ""}
+                    onChange={(e) => {
+                      e.target.form?.submit()
+                    }}
+                    className="flex h-10 w-[160px] items-center justify-between rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+                  >
+                    <option value="">All Tags</option>
+                    {allTags.map((tag) => (
+                      <option key={tag} value={tag}>
+                        {tag}
+                      </option>
+                    ))}
+                  </select>
+                </form>
+              </div>
+            )}
+
+            <div className="w-full md:w-auto">
+              <form action="/posts" method="get">
+                <input type="hidden" name="search" value={searchParams.search || ""} />
+                <input type="hidden" name="role" value={searchParams.role || ""} />
+                <input type="hidden" name="tag" value={searchParams.tag || ""} />
+                <select
+                  name="sort"
+                  defaultValue={searchParams.sort || "recent"}
+                  onChange={(e) => {
+                    e.target.form?.submit()
+                  }}
+                  className="flex h-10 w-[160px] items-center justify-between rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+                >
+                  <option value="recent">Most Recent</option>
+                  <option value="likes">Most Liked</option>
+                </select>
+              </form>
+            </div>
+
+            {(searchParams.search || searchParams.role || searchParams.tag || searchParams.sort) && (
+              <Button variant="ghost" asChild>
+                <Link href="/posts">Clear Filters</Link>
+              </Button>
+            )}
+          </div>
+        </div>
+      </div>
+
+      {posts?.length ? (
+        <div className="space-y-6">
+          {posts.map((post) => (
+            <Card key={post.id} className="overflow-hidden">
+              <CardHeader className="pb-3">
+                <div className="flex items-start gap-4">
+                  <Avatar className="h-10 w-10">
+                    <AvatarImage src={post.user?.avatar_url || "/placeholder.svg"} alt={post.user?.full_name} />
+                    <AvatarFallback>{post.user?.full_name?.charAt(0) || "U"}</AvatarFallback>
+                  </Avatar>
+                  <div className="flex-1 space-y-1">
+                    <div className="flex items-center gap-2 flex-wrap">
+                      <span className="font-medium">{post.user?.full_name}</span>
+                      <Badge variant={post.role === "lawyer" ? "default" : "secondary"} className="text-xs">
+                        {post.role === "lawyer" ? "Lawyer" : "Client"}
+                      </Badge>
+                      <span className="text-xs text-muted-foreground">
+                        {formatDistanceToNow(new Date(post.created_at), { addSuffix: true })}
+                      </span>
+                    </div>
+                    <Link href={`/posts/${post.id}`} className="hover:underline">
+                      <CardTitle className="text-lg">{post.title}</CardTitle>
+                    </Link>
+                  </div>
+                </div>
+              </CardHeader>
+              <CardContent>
+                <p className="line-clamp-3 text-muted-foreground">{post.content}</p>
+
+                {post.image_url && (
+                  <div className="mt-4 relative h-48 rounded-md overflow-hidden">
+                    <Image src={post.image_url || "/placeholder.svg"} alt={post.title} fill className="object-cover" />
+                  </div>
+                )}
+
+                {post.tags && post.tags.length > 0 && (
+                  <div className="flex flex-wrap gap-2 mt-4">
+                    {post.tags.map((tag) => (
+                      <Badge key={tag} variant="outline" className="text-xs">
+                        {tag}
+                      </Badge>
+                    ))}
+                  </div>
+                )}
+
+                <div className="mt-4 flex items-center gap-4">
+                  <Link href={`/posts/${post.id}`} className="text-sm font-medium hover:underline">
+                    Read more
+                  </Link>
+                </div>
+              </CardContent>
+            </Card>
+          ))}
+        </div>
+      ) : (
+        <div className="text-center py-12">
+          <h3 className="text-lg font-medium">No posts found</h3>
+          <p className="text-muted-foreground mt-1">
+            {searchParams.search || searchParams.role !== "all" || searchParams.tag || searchParams.sort !== "recent"
+              ? "Try adjusting your filters"
+              : "Be the first to create a post!"}
+          </p>
+          {session && (
+            <Button asChild className="mt-4 gradient-bg">
+              <Link href="/dashboard/create-post">Create Post</Link>
+            </Button>
+          )}
+        </div>
+      )}
+    </div>
+  )
+}

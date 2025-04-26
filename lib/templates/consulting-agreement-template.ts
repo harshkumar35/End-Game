@@ -1,5 +1,6 @@
+// Keep the original export
 export const consultingAgreementTemplate = `
-                                                CONSULTING AGREEMENT
+                                               CONSULTING AGREEMENT
 
 THIS CONSULTING AGREEMENT (the "Agreement") is made and entered into as of {{effectiveDate}} (the "Effective Date"), by and between:
 
@@ -18,8 +19,8 @@ NOW, THEREFORE, in consideration of the mutual covenants and agreements herein c
 1.1 Engagement. The Client hereby engages the Consultant, and the Consultant hereby accepts the engagement, to provide and perform the services set forth in this Agreement in accordance with the terms and conditions of this Agreement.
 
 1.2 Services. The Consultant shall provide to the Client the following services (collectively, the "Services"):
-   (a) {{serviceDescription}}
-   (b) Such other services as may be agreed upon by the parties from time to time.
+  (a) {{serviceDescription}}
+  (b) Such other services as may be agreed upon by the parties from time to time.
 
 1.3 Performance of Services. The Consultant shall perform the Services in a professional manner and in accordance with industry standards and the terms of this Agreement.
 
@@ -112,3 +113,160 @@ Name: ___________________                                Name: _________________
 Title: ___________________                               Title: ___________________
 Date: ___________________                                Date: ___________________
 `
+
+// Also add the new function with better formatting
+export const generateConsultingAgreementTemplate = (data: {
+  consultantName: string
+  clientName: string
+  startDate: string
+  endDate: string
+  services: string
+  compensation: string
+  paymentTerms: string
+  terminationNotice: string
+  jurisdiction: string
+}) => {
+  const {
+    consultantName,
+    clientName,
+    startDate,
+    endDate,
+    services,
+    compensation,
+    paymentTerms,
+    terminationNotice,
+    jurisdiction,
+  } = data
+
+  return `
+    <html>
+      <head>
+        <style>
+          body {
+            font-family: 'Arial', sans-serif;
+            line-height: 1.6;
+            margin: 2.5cm;
+            color: #333;
+          }
+          .header {
+            text-align: center;
+            margin-bottom: 30px;
+          }
+          h1 {
+            font-size: 24px;
+            text-align: center;
+            margin-bottom: 20px;
+            font-weight: bold;
+          }
+          h2 {
+            font-size: 18px;
+            margin-top: 20px;
+            margin-bottom: 10px;
+            font-weight: bold;
+          }
+          p {
+            margin-bottom: 15px;
+            text-align: justify;
+          }
+          .section {
+            margin-bottom: 20px;
+          }
+          .signature {
+            margin-top: 50px;
+            display: flex;
+            justify-content: space-between;
+          }
+          .signature-block {
+            width: 45%;
+          }
+          .signature-line {
+            border-top: 1px solid #000;
+            margin-top: 50px;
+            margin-bottom: 10px;
+          }
+          .date-line {
+            border-top: 1px solid #000;
+            margin-top: 20px;
+            margin-bottom: 10px;
+            width: 60%;
+          }
+        </style>
+      </head>
+      <body>
+        <div class="header">
+          <h1>CONSULTING AGREEMENT</h1>
+        </div>
+        
+        <p>This Consulting Agreement (the "Agreement") is entered into as of ${startDate} by and between:</p>
+        
+        <p><strong>${consultantName}</strong> (hereinafter referred to as the "Consultant"), and</p>
+        <p><strong>${clientName}</strong> (hereinafter referred to as the "Client").</p>
+        
+        <div class="section">
+          <h2>1. ENGAGEMENT</h2>
+          <p>The Client hereby engages the Consultant, and the Consultant hereby accepts the engagement, to provide consulting services to the Client as described in this Agreement.</p>
+        </div>
+        
+        <div class="section">
+          <h2>2. SERVICES</h2>
+          <p>The Consultant shall provide the following services to the Client (the "Services"):</p>
+          <p>${services}</p>
+        </div>
+        
+        <div class="section">
+          <h2>3. TERM</h2>
+          <p>This Agreement shall commence on ${startDate} and shall continue until ${endDate}, unless earlier terminated in accordance with this Agreement.</p>
+        </div>
+        
+        <div class="section">
+          <h2>4. COMPENSATION</h2>
+          <p>In consideration for the Services, the Client shall pay the Consultant ${compensation}.</p>
+          <p>Payment terms: ${paymentTerms}</p>
+        </div>
+        
+        <div class="section">
+          <h2>5. INDEPENDENT CONTRACTOR</h2>
+          <p>The Consultant is an independent contractor and not an employee of the Client. The Consultant shall be responsible for all taxes, insurance, and other obligations related to the Consultant's business.</p>
+        </div>
+        
+        <div class="section">
+          <h2>6. CONFIDENTIALITY</h2>
+          <p>The Consultant acknowledges that during the engagement, the Consultant may have access to confidential information belonging to the Client. The Consultant agrees to maintain the confidentiality of such information during and after the term of this Agreement.</p>
+        </div>
+        
+        <div class="section">
+          <h2>7. TERMINATION</h2>
+          <p>Either Party may terminate this Agreement by providing ${terminationNotice} written notice to the other Party.</p>
+        </div>
+        
+        <div class="section">
+          <h2>8. GOVERNING LAW</h2>
+          <p>This Agreement shall be governed by and construed in accordance with the laws of ${jurisdiction}, without regard to its conflict of law principles.</p>
+        </div>
+        
+        <div class="section">
+          <h2>9. ENTIRE AGREEMENT</h2>
+          <p>This Agreement constitutes the entire agreement between the Parties with respect to the subject matter hereof and supersedes all prior negotiations, understandings, and agreements between the Parties.</p>
+        </div>
+        
+        <div class="signature">
+          <div class="signature-block">
+            <p><strong>Consultant:</strong></p>
+            <div class="signature-line"></div>
+            <p>Name: ${consultantName}</p>
+            <div class="date-line"></div>
+            <p>Date</p>
+          </div>
+          
+          <div class="signature-block">
+            <p><strong>Client:</strong></p>
+            <div class="signature-line"></div>
+            <p>Name: ${clientName}</p>
+            <div class="date-line"></div>
+            <p>Date</p>
+          </div>
+        </div>
+      </body>
+    </html>
+  `
+}

@@ -1,28 +1,29 @@
+// Keep the original export
 export const ndaTemplate = `
-                                                         NON-DISCLOSURE AGREEMENT
+                                                        NON-DISCLOSURE AGREEMENT
 
-                                                         
+                                                        
 
 THIS AGREEMENT is made and entered into on {{effectiveDate}}(Date)
 
-                                     BETWEEN:
+                                    BETWEEN:
 
 1. {{party1}} (hereinafter referred to as "Party 1")
 
-                                     AND
+                                    AND
 
 2. {{party2}} (hereinafter referred to as "Party 2")
 
- (Party 1 and Party 2 are hereinafter referred to individually as a "Party"and collectively as the "Parties". The Party disclosing confidential information shall be referred to as the "Disclosing Party" and the Party receiving the confidential information shall be referred to as the "Receiving Party".)
+(Party 1 and Party 2 are hereinafter referred to individually as a "Party"and collectively as the "Parties". The Party disclosing confidential information shall be referred to as the "Disclosing Party" and the Party receiving the confidential information shall be referred to as the "Receiving Party".)
 
-                                    WHEREAS:
+                                   WHEREAS:
 
- Party 1 engages in {{party1Engages}};
- Party 2 engages in {{party2Engages}};
- 
+Party 1 engages in {{party1Engages}};
+Party 2 engages in {{party2Engages}};
+
 The Parties wish to explore {{purpose}} (hereinafter referred to as the "Proposed Transaction");
 
- IN CONNECTION WITH THE ABOVE, THE PARTIES HEREBY AGREE AS FOLLOWS:
+IN CONNECTION WITH THE ABOVE, THE PARTIES HEREBY AGREE AS FOLLOWS:
 
 1.	"Confidential and or proprietary Information" shall mean and include any information disclosed by one Party (Disclosing Party) to the other (Receiving Party) either directly or indirectly, in writing, orally, by inspection of tangible objects (including, without limitation, documents, prototypes, samples, media, documentation, discs and code). Confidential information shall include, without limitation, any materials, trade secrets, network information, configurations, trademarks, brand name, know-how, business and marketing plans, financial and operational information, and all other non-public information, material or data relating to the current and/ or future business and operations of the Disclosing Party and analysis, compilations, studies, summaries, extracts or other documentation prepared by the Disclosing Party. Confidential Information may also include information disclosed to the Receiving Party by third parties on behalf of the Disclosing Party. 
 
@@ -62,7 +63,7 @@ iv)	has been approved for release or use (in either case without restriction) by
 
 Notwithstanding anything contained herein, the provisions of this Agreement shall survive and continue after expiration or termination of this Agreement for a further period of five year(s) from the date of expiration.
 
-It being further clarified that notwithstanding anything contained herein, in case a binding agreement is executed between the Parties in furtherance of the Proposed Transaction, the terms and conditions of this Agreement shall become effective and form a part of that binding agreement and be co-terminus with such binding agreement and shall be in effect till the term of such binding agreement and shall after its expiry and or early termination shall continue to be in force in the following manner: 
+It being further clarified that notwithstanding anything contained herein, in case a binding agreement is executed between the Parties in furtherance of the Proposed Transaction, the terms and conditions of this Agreement shall become effective and form a part of that binding agreement and be co-terminus with such binding agreement and shall after its expiry and or early termination shall continue to be in force in the following manner: 
 
 i.	{{confidentialityDuration}} years after the expiry of the binding agreement 
 
@@ -83,15 +84,149 @@ i.	{{confidentialityDuration}} years after the expiry of the binding agreement
 21. 	The Agreement and/or any rights arising from it cannot be assigned or otherwise transferred either wholly or in part, without the written consent of the other Party.
 
 
-                            
+                           
 
-            For Party 1:                                                  For Party 2:
+           For Party 1:                                                  For Party 2:
 
-            _______________________                                       _______________________
-            Signature                                                     Signature
+           _______________________                                       _______________________
+           Signature                                                     Signature
 
-            Name: ___________________                                     Name: ___________________
-            Designation: _____________                                    Designation: _____________
-            Date: ___________________                                     Date: ___________________
+           Name: ___________________                                     Name: ___________________
+           Designation: _____________                                    Designation: _____________
+           Date: ___________________                                     Date: ___________________
 
 `
+
+// Also add the new function with better formatting
+export const generateNDATemplate = (data: {
+  partyA: string
+  partyB: string
+  effectiveDate: string
+  purpose: string
+  duration: string
+  jurisdiction: string
+}) => {
+  const { partyA, partyB, effectiveDate, purpose, duration, jurisdiction } = data
+
+  return `
+    <html>
+      <head>
+        <style>
+          body {
+            font-family: 'Arial', sans-serif;
+            line-height: 1.6;
+            margin: 2.5cm;
+            color: #333;
+          }
+          .header {
+            text-align: center;
+            margin-bottom: 30px;
+          }
+          h1 {
+            font-size: 24px;
+            text-align: center;
+            margin-bottom: 20px;
+            font-weight: bold;
+          }
+          h2 {
+            font-size: 18px;
+            margin-top: 20px;
+            margin-bottom: 10px;
+            font-weight: bold;
+          }
+          p {
+            margin-bottom: 15px;
+            text-align: justify;
+          }
+          .section {
+            margin-bottom: 20px;
+          }
+          .signature {
+            margin-top: 50px;
+            display: flex;
+            justify-content: space-between;
+          }
+          .signature-block {
+            width: 45%;
+          }
+          .signature-line {
+            border-top: 1px solid #000;
+            margin-top: 50px;
+            margin-bottom: 10px;
+          }
+          .date-line {
+            border-top: 1px solid #000;
+            margin-top: 20px;
+            margin-bottom: 10px;
+            width: 60%;
+          }
+        </style>
+      </head>
+      <body>
+        <div class="header">
+          <h1>NON-DISCLOSURE AGREEMENT</h1>
+        </div>
+        
+        <p>This Non-Disclosure Agreement (the "Agreement") is entered into as of ${effectiveDate} by and between:</p>
+        
+        <p><strong>${partyA}</strong> (hereinafter referred to as "Party A"), and</p>
+        <p><strong>${partyB}</strong> (hereinafter referred to as "Party B").</p>
+        
+        <p>Party A and Party B are sometimes referred to individually as a "Party" and collectively as the "Parties".</p>
+        
+        <div class="section">
+          <h2>1. PURPOSE</h2>
+          <p>The Parties wish to explore a potential business relationship concerning ${purpose} (the "Purpose"). In connection with the Purpose, each Party may disclose to the other certain confidential and proprietary information.</p>
+        </div>
+        
+        <div class="section">
+          <h2>2. DEFINITION OF CONFIDENTIAL INFORMATION</h2>
+          <p>"Confidential Information" means any information disclosed by one Party (the "Disclosing Party") to the other Party (the "Receiving Party"), either directly or indirectly, in writing, orally or by inspection of tangible objects, which is designated as "Confidential," "Proprietary" or some similar designation, or that should reasonably be understood to be confidential given the nature of the information and the circumstances of disclosure.</p>
+        </div>
+        
+        <div class="section">
+          <h2>3. OBLIGATIONS</h2>
+          <p>The Receiving Party shall:</p>
+          <p>a) Maintain the confidentiality of the Disclosing Party's Confidential Information with at least the same degree of care that it uses to protect its own confidential information, but in no event less than reasonable care;</p>
+          <p>b) Not disclose any Confidential Information to any person or entity other than employees and consultants of the Receiving Party who have a need to know and who are bound by confidentiality obligations at least as restrictive as those contained herein;</p>
+          <p>c) Use the Confidential Information solely in connection with the Purpose and not for its own benefit or the benefit of any third party.</p>
+        </div>
+        
+        <div class="section">
+          <h2>4. DURATION</h2>
+          <p>The obligations of confidentiality and non-use under this Agreement shall remain in effect for a period of ${duration} from the date of disclosure.</p>
+        </div>
+        
+        <div class="section">
+          <h2>5. GOVERNING LAW</h2>
+          <p>This Agreement shall be governed by and construed in accordance with the laws of ${jurisdiction}, without regard to its conflict of law principles.</p>
+        </div>
+        
+        <div class="section">
+          <h2>6. ENTIRE AGREEMENT</h2>
+          <p>This Agreement constitutes the entire agreement between the Parties with respect to the subject matter hereof and supersedes all prior negotiations, understandings, and agreements between the Parties.</p>
+        </div>
+        
+        <div class="signature">
+          <div class="signature-block">
+            <p><strong>Party A:</strong></p>
+            <div class="signature-line"></div>
+            <p>Name: ${partyA}</p>
+            <p>Title: ____________________</p>
+            <div class="date-line"></div>
+            <p>Date</p>
+          </div>
+          
+          <div class="signature-block">
+            <p><strong>Party B:</strong></p>
+            <div class="signature-line"></div>
+            <p>Name: ${partyB}</p>
+            <p>Title: ____________________</p>
+            <div class="date-line"></div>
+            <p>Date</p>
+          </div>
+        </div>
+      </body>
+    </html>
+  `
+}
