@@ -1,94 +1,36 @@
-import { createClient } from "@/lib/supabase/client"
+import { createClientComponentClient } from "@supabase/auth-helpers-nextjs"
 
-export async function uploadProfileImage(file: File, userId: string): Promise<string | null> {
-  try {
-    const supabase = createClient()
+export async function uploadImage(file: File, bucket: string, userId: string): Promise<string | null> {
+  const supabase = createClientComponentClient()
 
-    // Create a unique file name
-    const fileExt = file.name.split(".").pop()
-    const fileName = `${userId}-${Math.random().toString(36).substring(2)}.${fileExt}`
-    const filePath = `profiles/${fileName}`
+  // Generate a unique file name
+  const fileExt = file.name.split(".").pop()
+  const fileName = `${userId}-${Math.random().toString(36).substring(2, 15)}.${fileExt}`
 
-    // Upload the file
-    const { error: uploadError } = await supabase.storage.from("avatars").upload(filePath, file, {
-      cacheControl: "3600",
-      upsert: true,
-    })
+  // Upload the file
+  const { data, error } = await supabase.storage.from(bucket).upload(`${userId}/${fileName}`, file)
 
-    if (uploadError) {
-      throw uploadError
-    }
-
-    // Get the public URL
-    const { data } = supabase.storage.from("avatars").getPublicUrl(filePath)
-
-    return data.publicUrl
-  } catch (error) {
+  if (error) {
     console.error("Error uploading image:", error)
     return null
   }
+
+  // Get the public URL
+  const {
+    data: { publicUrl },
+  } = supabase.storage.from(bucket).getPublicUrl(`${userId}/${fileName}`)
+
+  return publicUrl
 }
 
 export async function uploadPostImage(file: File, userId: string): Promise<string | null> {
-  try {
-    const supabase = createClient()
-
-    // Create a unique file name
-    const fileExt = file.name.split(".").pop()
-    const fileName = `post-${userId}-${Math.random().toString(36).substring(2)}.${fileExt}`
-    const filePath = `posts/${fileName}`
-
-    // Upload the file
-    const { error: uploadError } = await supabase.storage.from("posts").upload(filePath, file, {
-      cacheControl: "3600",
-      upsert: true,
-    })
-
-    if (uploadError) {
-      throw uploadError
-    }
-
-    // Get the public URL
-    const { data } = supabase.storage.from("posts").getPublicUrl(filePath)
-
-    return data.publicUrl
-  } catch (error) {
-    console.error("Error uploading post image:", error)
-    return null
-  }
+  return uploadImage(file, "posts", userId)
 }
 
-// Add the generic uploadImage function that was missing
-export async function uploadImage(
-  file: File,
-  userId: string,
-  bucket = "avatars",
-  prefix = "profiles",
-): Promise<string | null> {
-  try {
-    const supabase = createClient()
+export async function uploadProfileImage(file: File, userId: string): Promise<string | null> {
+  return uploadImage(file, "avatars", userId)
+}
 
-    // Create a unique file name
-    const fileExt = file.name.split(".").pop()
-    const fileName = `${prefix}-${userId}-${Math.random().toString(36).substring(2)}.${fileExt}`
-    const filePath = `${prefix}/${fileName}`
-
-    // Upload the file
-    const { error: uploadError } = await supabase.storage.from(bucket).upload(filePath, file, {
-      cacheControl: "3600",
-      upsert: true,
-    })
-
-    if (uploadError) {
-      throw uploadError
-    }
-
-    // Get the public URL
-    const { data } = supabase.storage.from(bucket).getPublicUrl(filePath)
-
-    return data.publicUrl
-  } catch (error) {
-    console.error("Error uploading image:", error)
-    return null
-  }
+export async function uploadDocumentImage(file: File, userId: string): Promise<string | null> {
+  return uploadImage(file, "documents", userId)
 }
