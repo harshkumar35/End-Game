@@ -6,7 +6,8 @@ import { Card, CardContent, CardFooter, CardHeader } from "@/components/ui/card"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Badge } from "@/components/ui/badge"
 import { formatDistanceToNow } from "date-fns"
-import { ArrowLeft, MessageSquare, ThumbsUp, Share } from "lucide-react"
+import { ArrowLeft } from "lucide-react"
+import PostActionButtons from "@/components/posts/post-action-buttons"
 import PostComments from "@/components/posts/post-comments"
 
 export const dynamic = "force-dynamic"
@@ -24,7 +25,7 @@ export default async function PostDetailPage({ params }: { params: { id: string 
     .from("posts")
     .select(`
       *,
-      users (
+      users:user_id (
         id,
         full_name,
         avatar_url,
@@ -44,7 +45,7 @@ export default async function PostDetailPage({ params }: { params: { id: string 
     .from("post_comments")
     .select(`
       *,
-      users (
+      users:user_id (
         id,
         full_name,
         avatar_url,
@@ -53,6 +54,20 @@ export default async function PostDetailPage({ params }: { params: { id: string 
     `)
     .eq("post_id", params.id)
     .order("created_at", { ascending: true })
+
+  // Check if user has liked this post
+  let userHasLiked = false
+
+  if (session) {
+    const { data: likeData } = await supabase
+      .from("post_likes")
+      .select("id")
+      .eq("post_id", post.id)
+      .eq("user_id", session.user.id)
+      .single()
+
+    userHasLiked = !!likeData
+  }
 
   return (
     <div className="container py-8 max-w-4xl">
@@ -112,18 +127,12 @@ export default async function PostDetailPage({ params }: { params: { id: string 
           )}
 
           <div className="flex items-center gap-6 pt-4 border-t">
-            <div className="flex items-center gap-1">
-              <ThumbsUp className="h-5 w-5 text-muted-foreground" />
-              <span>{post.likes_count || 0} likes</span>
-            </div>
-            <div className="flex items-center gap-1">
-              <MessageSquare className="h-5 w-5 text-muted-foreground" />
-              <span>{comments?.length || 0} comments</span>
-            </div>
-            <div className="flex items-center gap-1">
-              <Share className="h-5 w-5 text-muted-foreground" />
-              <span>Share</span>
-            </div>
+            <PostActionButtons
+              postId={post.id}
+              initialLikes={post.likes || 0}
+              initialComments={comments?.length || 0}
+              userHasLiked={userHasLiked}
+            />
           </div>
         </CardContent>
         <CardFooter className="border-t pt-6 flex-col items-start">

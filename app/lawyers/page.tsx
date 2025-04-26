@@ -1,13 +1,11 @@
-"use client"
-
 import { createServerSupabaseClient } from "@/lib/supabase/server"
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
-import { Star, Search, Filter } from "lucide-react"
-import { Input } from "@/components/ui/input"
+import { Star } from "lucide-react"
 import { Badge } from "@/components/ui/badge"
+import SpecializationFilter from "@/components/lawyers/specialization-filter"
 
 export const dynamic = "force-dynamic"
 
@@ -58,47 +56,7 @@ export default async function LawyersPage({
         <p className="text-muted-foreground">Browse our network of qualified legal professionals</p>
       </div>
 
-      <div className="flex flex-col md:flex-row gap-4 items-end mb-8">
-        <div className="w-full md:w-1/3 space-y-2">
-          <div className="flex items-center gap-2">
-            <Search className="h-4 w-4 text-muted-foreground" />
-            <span className="text-sm font-medium">Search</span>
-          </div>
-          <form action="/lawyers" method="get" className="relative">
-            <Input name="search" placeholder="Search by name..." defaultValue={searchParams.search || ""} />
-            <input type="hidden" name="specialization" value={searchParams.specialization || ""} />
-            <Button type="submit" size="sm" className="absolute right-1 top-1 h-7">
-              Search
-            </Button>
-          </form>
-        </div>
-
-        <div className="w-full md:w-1/3 space-y-2">
-          <div className="flex items-center gap-2">
-            <Filter className="h-4 w-4 text-muted-foreground" />
-            <span className="text-sm font-medium">Specialization</span>
-          </div>
-          <form action="/lawyers" method="get" className="flex gap-2">
-            <input type="hidden" name="search" value={searchParams.search || ""} />
-            <select
-              name="specialization"
-              defaultValue={searchParams.specialization || "all"}
-              className="flex h-10 w-full items-center justify-between rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
-              onChange={(e) => {
-                e.target.form?.requestSubmit()
-              }}
-            >
-              <option value="all">All Specializations</option>
-              {uniqueSpecializations.map((spec) => (
-                <option key={spec} value={spec}>
-                  {spec.charAt(0).toUpperCase() + spec.slice(1)}
-                </option>
-              ))}
-            </select>
-            <Button type="submit">Apply</Button>
-          </form>
-        </div>
-      </div>
+      <SpecializationFilter searchParams={searchParams} uniqueSpecializations={uniqueSpecializations} />
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         {lawyers && lawyers.length > 0 ? (
