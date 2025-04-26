@@ -8,6 +8,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Input } from "@/components/ui/input"
 import { Badge } from "@/components/ui/badge"
 import { formatDistanceToNow } from "date-fns"
+import { Search } from "lucide-react"
 
 export const dynamic = "force-dynamic"
 
@@ -26,7 +27,7 @@ export default async function PostsPage({
   // Build query
   let query = supabase.from("posts").select(`
       *,
-      users (
+      users:user_id (
         id,
         full_name,
         avatar_url,
@@ -46,7 +47,7 @@ export default async function PostsPage({
 
   // Apply sorting
   if (searchParams.sort === "likes") {
-    query = query.order("likes_count", { ascending: false })
+    query = query.order("likes", { ascending: false })
   } else {
     query = query.order("created_at", { ascending: false })
   }
@@ -71,7 +72,7 @@ export default async function PostsPage({
             <input type="hidden" name="role" value={searchParams.role || ""} />
             <input type="hidden" name="sort" value={searchParams.sort || ""} />
             <Button type="submit" size="sm" className="absolute right-1 top-1 h-7">
-              Search
+              <Search className="h-4 w-4" />
             </Button>
           </form>
         </div>
@@ -175,7 +176,7 @@ export default async function PostsPage({
               </CardContent>
               <CardFooter className="border-t pt-4 flex justify-between">
                 <div className="flex items-center text-sm text-muted-foreground">
-                  <span>{post.likes_count || 0} likes</span>
+                  <span>{post.likes || 0} likes</span>
                   <span className="mx-1">•</span>
                   <span>{post.comments_count || 0} comments</span>
                 </div>
