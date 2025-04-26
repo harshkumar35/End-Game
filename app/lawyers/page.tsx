@@ -7,7 +7,6 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Star, Search, Filter } from "lucide-react"
 import { Input } from "@/components/ui/input"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Badge } from "@/components/ui/badge"
 
 export const dynamic = "force-dynamic"
@@ -65,8 +64,9 @@ export default async function LawyersPage({
             <Search className="h-4 w-4 text-muted-foreground" />
             <span className="text-sm font-medium">Search</span>
           </div>
-          <form method="get" className="relative">
+          <form action="/lawyers" method="get" className="relative">
             <Input name="search" placeholder="Search by name..." defaultValue={searchParams.search || ""} />
+            <input type="hidden" name="specialization" value={searchParams.specialization || ""} />
             <Button type="submit" size="sm" className="absolute right-1 top-1 h-7">
               Search
             </Button>
@@ -78,32 +78,23 @@ export default async function LawyersPage({
             <Filter className="h-4 w-4 text-muted-foreground" />
             <span className="text-sm font-medium">Specialization</span>
           </div>
-          <form method="get" className="flex gap-2">
+          <form action="/lawyers" method="get" className="flex gap-2">
             <input type="hidden" name="search" value={searchParams.search || ""} />
-            <Select
+            <select
               name="specialization"
               defaultValue={searchParams.specialization || "all"}
-              onValueChange={(value) => {
-                const url = new URL(window.location.href)
-                url.searchParams.set("specialization", value)
-                if (searchParams.search) {
-                  url.searchParams.set("search", searchParams.search)
-                }
-                window.location.href = url.toString()
+              className="flex h-10 w-full items-center justify-between rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+              onChange={(e) => {
+                e.target.form?.requestSubmit()
               }}
             >
-              <SelectTrigger className="w-full">
-                <SelectValue placeholder="All Specializations" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">All Specializations</SelectItem>
-                {uniqueSpecializations.map((spec) => (
-                  <SelectItem key={spec} value={spec}>
-                    {spec.charAt(0).toUpperCase() + spec.slice(1)}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+              <option value="all">All Specializations</option>
+              {uniqueSpecializations.map((spec) => (
+                <option key={spec} value={spec}>
+                  {spec.charAt(0).toUpperCase() + spec.slice(1)}
+                </option>
+              ))}
+            </select>
             <Button type="submit">Apply</Button>
           </form>
         </div>

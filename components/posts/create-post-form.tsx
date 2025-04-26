@@ -11,8 +11,8 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
 import { toast } from "@/components/ui/use-toast"
-import { uploadImage } from "@/lib/utils/upload-image"
-import { Loader2, ImagePlus } from "lucide-react"
+import { uploadPostImage } from "@/lib/utils/upload-image"
+import { Loader2, ImagePlus, X } from "lucide-react"
 
 export default function CreatePostForm({ userRole }: { userRole: string }) {
   const [title, setTitle] = useState("")
@@ -33,6 +33,11 @@ export default function CreatePostForm({ userRole }: { userRole: string }) {
       }
       reader.readAsDataURL(file)
     }
+  }
+
+  const handleRemoveImage = () => {
+    setImage(null)
+    setImagePreview(null)
   }
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -58,7 +63,7 @@ export default function CreatePostForm({ userRole }: { userRole: string }) {
 
       let imageUrl = null
       if (image) {
-        imageUrl = await uploadImage(image, "posts", userData.user.id)
+        imageUrl = await uploadPostImage(image, userData.user.id)
       }
 
       const { error } = await supabase.from("posts").insert({
@@ -66,7 +71,7 @@ export default function CreatePostForm({ userRole }: { userRole: string }) {
         title,
         content,
         image_url: imageUrl,
-        user_role: userRole,
+        role: userRole,
       })
 
       if (error) throw error
@@ -76,13 +81,13 @@ export default function CreatePostForm({ userRole }: { userRole: string }) {
         description: "Your post has been created",
       })
 
-      router.push("/dashboard")
+      router.push("/posts")
       router.refresh()
-    } catch (error) {
+    } catch (error: any) {
       console.error("Error creating post:", error)
       toast({
         title: "Error",
-        description: "Failed to create post. Please try again.",
+        description: error.message || "Failed to create post. Please try again.",
         variant: "destructive",
       })
     } finally {
@@ -91,7 +96,7 @@ export default function CreatePostForm({ userRole }: { userRole: string }) {
   }
 
   return (
-    <Card className="w-full max-w-2xl mx-auto">
+    <Card className="w-full">
       <CardHeader>
         <CardTitle>Create a New Post</CardTitle>
       </CardHeader>
@@ -140,6 +145,15 @@ export default function CreatePostForm({ userRole }: { userRole: string }) {
                     alt="Preview"
                     className="h-16 w-16 object-cover rounded"
                   />
+                  <Button
+                    type="button"
+                    variant="destructive"
+                    size="icon"
+                    className="absolute -top-2 -right-2 h-5 w-5 rounded-full"
+                    onClick={handleRemoveImage}
+                  >
+                    <X className="h-3 w-3" />
+                  </Button>
                 </div>
               )}
             </div>
@@ -147,7 +161,7 @@ export default function CreatePostForm({ userRole }: { userRole: string }) {
         </CardContent>
 
         <CardFooter className="flex justify-end">
-          <Button type="submit" disabled={isSubmitting}>
+          <Button type="submit" disabled={isSubmitting} className="gradient-bg">
             {isSubmitting ? (
               <>
                 <Loader2 className="mr-2 h-4 w-4 animate-spin" />

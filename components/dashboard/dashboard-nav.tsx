@@ -1,114 +1,136 @@
 "use client"
 
+import type React from "react"
+
+import { useState, useEffect } from "react"
 import Link from "next/link"
 import { usePathname } from "next/navigation"
+import { createClientComponentClient } from "@supabase/auth-helpers-nextjs"
 import { cn } from "@/lib/utils"
+import { Button } from "@/components/ui/button"
+import { useSupabase } from "@/lib/supabase/provider"
 import {
   LayoutDashboard,
   FileText,
   MessageSquare,
-  Users,
+  Gavel,
   Settings,
-  PenTool,
-  Briefcase,
-  FileCheck,
-  FilePlus,
   Newspaper,
+  PenSquare,
+  Briefcase,
+  CheckSquare,
 } from "lucide-react"
 
-interface DashboardNavProps {
-  userRole: string
+interface NavItem {
+  title: string
+  href: string
+  icon: React.ReactNode
+  roles?: string[]
 }
 
-export function DashboardNav({ userRole }: DashboardNavProps) {
+export function DashboardNav() {
   const pathname = usePathname()
+  const { user, isLoading } = useSupabase()
+  const [userRole, setUserRole] = useState<string | null>(null)
 
-  const commonLinks = [
+  useEffect(() => {
+    const fetchUserRole = async () => {
+      if (!user) return
+
+      const supabase = createClientComponentClient()
+      const { data, error } = await supabase.from("users").select("role").eq("id", user.id).single()
+
+      if (!error && data) {
+        setUserRole(data.role)
+      }
+    }
+
+    fetchUserRole()
+  }, [user])
+
+  const navItems: NavItem[] = [
     {
+      title: "Overview",
       href: "/dashboard",
-      label: "Overview",
-      icon: LayoutDashboard,
+      icon: <LayoutDashboard className="mr-2 h-4 w-4" />,
     },
     {
+      title: "Create Post",
+      href: "/dashboard/create-post",
+      icon: <PenSquare className="mr-2 h-4 w-4" />,
+    },
+    {
+      title: "Messages",
       href: "/dashboard/messages",
-      label: "Messages",
-      icon: MessageSquare,
+      icon: <MessageSquare className="mr-2 h-4 w-4" />,
     },
     {
-      href: "/dashboard/new-post",
-      label: "Create Post",
-      icon: PenTool,
+      title: "Documents",
+      href: "/dashboard/documents",
+      icon: <FileText className="mr-2 h-4 w-4" />,
     },
     {
-      href: "/legal-news",
-      label: "Legal News",
-      icon: Newspaper,
-    },
-  ]
-
-  const clientLinks = [
-    {
-      href: "/dashboard/post-case",
-      label: "Post a Case",
-      icon: FilePlus,
-    },
-    {
-      href: "/dashboard/my-cases",
-      label: "My Cases",
-      icon: Briefcase,
-    },
-    {
-      href: "/dashboard/lawyers",
-      label: "Find Lawyers",
-      icon: Users,
-    },
-  ]
-
-  const lawyerLinks = [
-    {
-      href: "/dashboard/cases",
-      label: "Browse Cases",
-      icon: FileText,
-    },
-    {
-      href: "/dashboard/my-applications",
-      label: "My Applications",
-      icon: FileCheck,
-    },
-    {
+      title: "Document Generator",
       href: "/dashboard/document-generator",
-      label: "Document Generator",
-      icon: FilePlus,
+      icon: <Gavel className="mr-2 h-4 w-4" />,
+    },
+    {
+      title: "Legal News",
+      href: "/legal-news",
+      icon: <Newspaper className="mr-2 h-4 w-4" />,
+    },
+    {
+      title: "Available Cases",
+      href: "/dashboard/cases",
+      icon: <Briefcase className="mr-2 h-4 w-4" />,
+      roles: ["lawyer"],
+    },
+    {
+      title: "My Applications",
+      href: "/dashboard/my-applications",
+      icon: <CheckSquare className="mr-2 h-4 w-4" />,
+      roles: ["lawyer"],
+    },
+    {
+      title: "Post Case",
+      href: "/dashboard/post-case",
+      icon: <PenSquare className="mr-2 h-4 w-4" />,
+      roles: ["client"],
+    },
+    {
+      title: "Settings",
+      href: "/dashboard/settings",
+      icon: <Settings className="mr-2 h-4 w-4" />,
     },
   ]
 
-  const links = [...commonLinks, ...(userRole === "lawyer" ? lawyerLinks : clientLinks)]
+  if (isLoading) {
+    return (
+      <div className="flex flex-col space-y-2">
+        {[1, 2, 3, 4, 5].map((i) => (
+          <div key={i} className="h-9 rounded-md bg-muted animate-pulse" />
+        ))}
+      </div>
+    )
+  }
 
   return (
-    <nav className="grid items-start gap-2">
-      {links.map((link) => (
-        <Link
-          key={link.href}
-          href={link.href}
-          className={cn(
-            "group flex items-center rounded-md px-3 py-2 text-sm font-medium hover:bg-accent hover:text-accent-foreground",
-            pathname === link.href ? "bg-accent" : "transparent",
-          )}
-        >
-          <link.icon className="mr-2 h-4 w-4" />
-          <span>{link.label}</span>
-        </Link>
-      ))}
-      <Link
-        href="/settings"
-        className={cn(
-          "group flex items-center rounded-md px-3 py-2 text-sm font-medium hover:bg-accent hover:text-accent-foreground",
-          pathname === "/settings" ? "bg-accent" : "transparent",
-        )}
-      >
-        <Settings className="mr-2 h-4 w-4" />
-        <span>Settings</span>
-      </Link>
+    <nav className="grid gap-2">
+      {navItems
+        .filter((item) => !item.roles || !userRole || item.roles.includes(userRole))
+        .map((item) => (
+          <Button
+            key={item.href}
+            variant={pathname === item.href ? "default" : "ghost"}
+            className={cn("justify-start", pathname === item.href ? "gradient-bg" : "")}
+            asChild
+          >
+            <Link href={item.href}>
+              {item.icon}
+              {item.title}
+            </Link>
+          </Button>
+        ))}
     </nav>
   )
 }
