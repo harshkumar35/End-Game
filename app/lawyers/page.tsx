@@ -5,7 +5,7 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Star } from "lucide-react"
 import { Badge } from "@/components/ui/badge"
-import SpecializationFilter from "@/components/lawyers/specialization-filter"
+import LawyerSearch from "@/components/lawyers/lawyer-search"
 
 export const dynamic = "force-dynamic"
 
@@ -56,9 +56,9 @@ export default async function LawyersPage({
         <p className="text-muted-foreground">Browse our network of qualified legal professionals</p>
       </div>
 
-      <SpecializationFilter searchParams={searchParams} uniqueSpecializations={uniqueSpecializations} />
+      <LawyerSearch searchParams={searchParams} specializations={uniqueSpecializations} />
 
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mt-8">
         {lawyers && lawyers.length > 0 ? (
           lawyers.map((lawyer) => (
             <Card key={lawyer.id} className="overflow-hidden">

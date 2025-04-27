@@ -1,88 +1,44 @@
 "use client"
 
-import type React from "react"
-
-import { useState } from "react"
-import { useRouter } from "next/navigation"
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { Search, Filter } from "lucide-react"
+import { useRouter, useSearchParams } from "next/navigation"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 
 interface SpecializationFilterProps {
-  searchParams: {
-    specialization?: string
-    search?: string
-  }
-  uniqueSpecializations: string[]
+  specializations: string[]
+  currentSpecialization: string
 }
 
-export default function SpecializationFilter({ searchParams, uniqueSpecializations }: SpecializationFilterProps) {
+export default function SpecializationFilter({ specializations, currentSpecialization }: SpecializationFilterProps) {
   const router = useRouter()
-  const [search, setSearch] = useState(searchParams.search || "")
-  const [specialization, setSpecialization] = useState(searchParams.specialization || "all")
+  const searchParams = useSearchParams()
 
-  const handleSearchSubmit = (e: React.FormEvent) => {
-    e.preventDefault()
+  const handleSpecializationChange = (value: string) => {
+    const params = new URLSearchParams(searchParams.toString())
 
-    const params = new URLSearchParams()
-    if (search) params.set("search", search)
-    if (specialization && specialization !== "all") params.set("specialization", specialization)
+    if (value !== "all") {
+      params.set("specialization", value)
+    } else {
+      params.delete("specialization")
+    }
 
-    router.push(`/lawyers?${params.toString()}`)
-  }
-
-  const handleSpecializationChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
-    const newSpecialization = e.target.value
-    setSpecialization(newSpecialization)
-
-    const params = new URLSearchParams()
-    if (search) params.set("search", search)
-    if (newSpecialization && newSpecialization !== "all") params.set("specialization", newSpecialization)
-
-    router.push(`/lawyers?${params.toString()}`)
+    const search = params.toString()
+    const query = search ? `?${search}` : ""
+    router.push(`/lawyers${query}`)
   }
 
   return (
-    <div className="flex flex-col md:flex-row gap-4 items-end mb-8">
-      <div className="w-full md:w-1/3 space-y-2">
-        <div className="flex items-center gap-2">
-          <Search className="h-4 w-4 text-muted-foreground" />
-          <span className="text-sm font-medium">Search</span>
-        </div>
-        <form onSubmit={handleSearchSubmit} className="relative">
-          <Input
-            name="search"
-            placeholder="Search by name..."
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-          />
-          <Button type="submit" size="sm" className="absolute right-1 top-1 h-7">
-            Search
-          </Button>
-        </form>
-      </div>
-
-      <div className="w-full md:w-1/3 space-y-2">
-        <div className="flex items-center gap-2">
-          <Filter className="h-4 w-4 text-muted-foreground" />
-          <span className="text-sm font-medium">Specialization</span>
-        </div>
-        <div className="flex gap-2">
-          <select
-            name="specialization"
-            value={specialization}
-            onChange={handleSpecializationChange}
-            className="flex h-10 w-full items-center justify-between rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
-          >
-            <option value="all">All Specializations</option>
-            {uniqueSpecializations.map((spec) => (
-              <option key={spec} value={spec}>
-                {spec.charAt(0).toUpperCase() + spec.slice(1)}
-              </option>
-            ))}
-          </select>
-        </div>
-      </div>
-    </div>
+    <Select value={currentSpecialization || "all"} onValueChange={handleSpecializationChange}>
+      <SelectTrigger className="w-full">
+        <SelectValue placeholder="All Specializations" />
+      </SelectTrigger>
+      <SelectContent>
+        <SelectItem value="all">All Specializations</SelectItem>
+        {specializations.map((spec) => (
+          <SelectItem key={spec} value={spec}>
+            {spec.charAt(0).toUpperCase() + spec.slice(1)}
+          </SelectItem>
+        ))}
+      </SelectContent>
+    </Select>
   )
 }
