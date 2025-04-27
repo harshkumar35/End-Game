@@ -1,17 +1,5 @@
 import { toast } from "@/components/ui/use-toast"
-
-export interface NewsArticle {
-  title: string
-  description: string
-  content: string
-  pubDate: string
-  image_url?: string
-  source_id: string
-  link: string
-  creator?: string | string[]
-  category?: string[]
-  language: string
-}
+import type { NewsArticle } from "@/lib/types/news"
 
 export interface NewsResponse {
   status: string
@@ -70,5 +58,49 @@ export async function fetchLegalNews(language = "en", page?: string): Promise<Ne
       totalResults: 0,
       results: [],
     }
+  }
+}
+
+export async function fetchNews(
+  category?: string,
+  query?: string,
+  page = 1,
+  pageSize = 10,
+): Promise<{ articles: NewsArticle[]; totalResults: number }> {
+  try {
+    const apiKey = process.env.NEWSDATA_API_KEY
+
+    if (!apiKey) {
+      throw new Error("API key not found")
+    }
+
+    let url = `https://newsdata.io/api/1/news?apikey=${apiKey}&language=en&page=${page}&size=${pageSize}`
+
+    if (category) {
+      url += `&category=${category}`
+    }
+
+    if (query) {
+      url += `&q=${encodeURIComponent(query)}`
+    }
+
+    // Add law-related keywords to focus on legal news
+    url += "&q=law OR legal OR court OR justice OR attorney OR lawyer"
+
+    const response = await fetch(url, { next: { revalidate: 3600 } })
+
+    if (!response.ok) {
+      throw new Error(`News API error: ${response.status}`)
+    }
+
+    const data = await response.json()
+
+    return {
+      articles: data.results || [],
+      totalResults: data.totalResults || 0,
+    }
+  } catch (error) {
+    console.error("Error fetching news:", error)
+    return { articles: [], totalResults: 0 }
   }
 }

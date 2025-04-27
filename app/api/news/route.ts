@@ -1,72 +1,22 @@
-import { type NextRequest, NextResponse } from "next/server"
+import { NextResponse } from "next/server"
+import { fetchNews } from "@/lib/services/news-service"
 
-const API_KEY = process.env.NEWSDATA_API_KEY
-const BASE_URL = "https://newsdata.io/api/1/news"
+// Remove any imports from next/headers
+// import { cookies } from 'next/headers'; // Remove this line if it exists
 
-export async function GET(request: NextRequest) {
+export async function GET(request: Request) {
   try {
     const { searchParams } = new URL(request.url)
-    const language = searchParams.get("language") || "en"
-    const page = searchParams.get("page") || ""
+    const category = searchParams.get("category") || undefined
+    const query = searchParams.get("query") || undefined
+    const page = Number.parseInt(searchParams.get("page") || "1")
+    const pageSize = Number.parseInt(searchParams.get("pageSize") || "10")
 
-    const params = new URLSearchParams({
-      apikey: API_KEY || "",
-      language,
-      category: "politics",
-      q: "legal,law,justice,court,supreme court",
-      size: "10",
-    })
+    const news = await fetchNews(category, query, page, pageSize)
 
-    if (page) {
-      params.append("page", page)
-    }
-
-    const response = await fetch(`${BASE_URL}?${params.toString()}`)
-
-    // Handle rate limiting and other HTTP errors
-    if (!response.ok) {
-      const status = response.status
-      const statusText = response.statusText
-
-      // Handle rate limiting specifically
-      if (status === 429) {
-        return NextResponse.json(
-          {
-            status: "error",
-            message: "Rate limit exceeded. Please try again later.",
-            totalResults: 0,
-            results: [],
-          },
-          { status: 429 },
-        )
-      }
-
-      // Handle other errors
-      return NextResponse.json(
-        {
-          status: "error",
-          message: `API error: ${status} ${statusText}`,
-          totalResults: 0,
-          results: [],
-        },
-        { status },
-      )
-    }
-
-    // Only try to parse JSON if the response is OK
-    const data = await response.json()
-
-    return NextResponse.json(data)
+    return NextResponse.json(news)
   } catch (error) {
-    console.error("Error fetching legal news:", error)
-    return NextResponse.json(
-      {
-        status: "error",
-        message: "Failed to fetch news. Please try again later.",
-        totalResults: 0,
-        results: [],
-      },
-      { status: 500 },
-    )
+    console.error("Error in news API route:", error)
+    return NextResponse.json({ error: "Failed to fetch news" }, { status: 500 })
   }
 }

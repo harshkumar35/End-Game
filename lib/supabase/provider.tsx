@@ -3,46 +3,50 @@
 import type React from "react"
 
 import { createContext, useContext, useEffect, useState } from "react"
-import { createClientComponentClient } from "@supabase/auth-helpers-nextjs"
-import type { SupabaseClient, User } from "@supabase/auth-helpers-nextjs"
+import { createClientSupabaseClient } from "./client"
+import type { SupabaseClient } from "@supabase/auth-helpers-nextjs"
+import type { User } from "@supabase/supabase-js"
 import type { Database } from "@/lib/types/database.types"
+
+// Make sure we're not importing createServerSupabaseClient here
+// import { createServerSupabaseClient } from "./server"; // Remove this line if it exists
 
 type SupabaseContext = {
   supabase: SupabaseClient<Database>
   user: User | null
+  isLoading: boolean
 }
 
 const Context = createContext<SupabaseContext | undefined>(undefined)
 
-export function SupabaseProvider({
-  children,
-}: {
-  children: React.ReactNode
-}) {
-  const [supabase] = useState(() => createClientComponentClient<Database>())
+export function SupabaseProvider({ children }: { children: React.ReactNode }) {
+  const [supabase] = useState(() => createClientSupabaseClient())
   const [user, setUser] = useState<User | null>(null)
+  const [isLoading, setIsLoading] = useState(true)
 
   useEffect(() => {
-    const {
-      data: { subscription },
-    } = supabase.auth.onAuthStateChange((_, session) => {
-      setUser(session?.user ?? null)
-    })
+    const getUser = async () => {
+      const { data } = await supabase.auth.getUser()
+      setUser(data.user)
+      setIsLoading(false)
+    }
 
-    // Get initial user
-    supabase.auth.getSession().then(({ data: { session } }) => {
+    getUser()
+
+    const { data: authListener } = supabase.auth.onAuthStateChange((event, session) => {
       setUser(session?.user ?? null)
+      setIsLoading(false)
     })
 
     return () => {
-      subscription.unsubscribe()
+      authListener.subscription.unsubscribe()
     }
   }, [supabase])
 
-  return <Context.Provider value={{ supabase, user }}>{children}</Context.Provider>
+  return <Context.Provider value={{ supabase, user, isLoading }}>{children}</Context.Provider>
 }
 
-export const useSupabase = () => {
+export function useSupabase() {
   const context = useContext(Context)
   if (context === undefined) {
     throw new Error("useSupabase must be used inside SupabaseProvider")

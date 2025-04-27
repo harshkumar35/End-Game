@@ -1,7 +1,6 @@
 import { createClientComponentClient } from "@supabase/auth-helpers-nextjs"
 import type { Database } from "@/lib/types/database.types"
 
-// Create a single supabase client for the entire client-side application
-export const createClient = () => {
+export function createClientSupabaseClient() {
   return createClientComponentClient<Database>()
 }

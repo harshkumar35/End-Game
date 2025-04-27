@@ -9,6 +9,9 @@ import { useSupabase } from "@/lib/supabase/provider"
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
 import { Menu, User, ChevronDown } from "lucide-react"
 
+// Make sure we're not importing createServerSupabaseClient here
+// import { createServerSupabaseClient } from "@/lib/supabase/server"; // Remove this line if it exists
+
 export function Navbar() {
   const pathname = usePathname()
   const { supabase, user } = useSupabase()
