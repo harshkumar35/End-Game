@@ -1,9 +1,6 @@
 import { NextResponse } from "next/server"
 import { fetchNews } from "@/lib/services/news-service"
 
-// Remove any imports from next/headers
-// import { cookies } from 'next/headers'; // Remove this line if it exists
-
 export async function GET(request: Request) {
   try {
     const { searchParams } = new URL(request.url)

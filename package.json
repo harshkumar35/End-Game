@@ -58,6 +58,7 @@
     "tailwindcss-animate": "^1.0.7",
     "vaul": "^0.9.6",
     "zod": "^3.24.1",
+    "@supabase/supabase-js": "latest",
     "expo": "latest",
     "expo-asset": "latest",
     "expo-file-system": "latest",
@@ -65,11 +66,13 @@
     "react-native": "latest",
     "three": "latest",
     "@react-three/fiber": "latest",
-    "@supabase/supabase-js": "latest",
-    "@react-three/drei": "latest",
-    "@react-spring/three": "latest",
     "jspdf": "latest",
-    "@supabase/auth-helpers-nextjs": "latest"
+    "@supabase/auth-helpers-nextjs": "latest",
+    "fs": "latest",
+    "path": "latest",
+    "child_process": "latest",
+    "@react-three/drei": "latest",
+    "@react-spring/three": "latest"
   },
   "devDependencies": {
     "@types/node": "^22",

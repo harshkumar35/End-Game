@@ -1,77 +1,95 @@
 "use client"
 
-import { createServerSupabaseClient } from "@/lib/supabase/server"
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
 import { PostCard } from "@/components/posts/post-card"
 import { Input } from "@/components/ui/input"
 import { Search } from "lucide-react"
+import { useEffect, useState } from "react"
+import { createClientComponentClient } from "@supabase/auth-helpers-nextjs"
+import type { Database } from "@/lib/types/database.types"
 
 export const dynamic = "force-dynamic"
 
-export default async function PostsPage({
+export default function PostsPage({
   searchParams,
 }: {
   searchParams: { role?: string; tag?: string; search?: string; sort?: string }
 }) {
-  const supabase = createServerSupabaseClient()
+  const [posts, setPosts] = useState<any[]>([])
+  const [session, setSession] = useState<any>(null)
+  const [allTags, setAllTags] = useState<string[]>([])
+  const [loading, setLoading] = useState(true)
+  const supabase = createClientComponentClient<Database>()
 
-  // Get current user session
-  const {
-    data: { session },
-  } = await supabase.auth.getSession()
+  useEffect(() => {
+    async function fetchData() {
+      setLoading(true)
 
-  // Build query
-  let query = supabase.from("posts").select(`
-    *,
-    users:user_id (
-      id,
-      full_name,
-      avatar_url,
-      role
-    )
-  `)
+      // Get current user session
+      const { data: sessionData } = await supabase.auth.getSession()
+      setSession(sessionData.session)
 
-  // Apply role filter
-  if (searchParams.role && searchParams.role !== "all") {
-    query = query.eq("role", searchParams.role)
-  }
+      // Build query
+      let query = supabase.from("posts").select(`
+        *,
+        users:user_id (
+          id,
+          full_name,
+          avatar_url,
+          role
+        )
+      `)
 
-  // Apply tag filter
-  if (searchParams.tag && searchParams.tag !== "all") {
-    query = query.contains("tags", [searchParams.tag])
-  }
+      // Apply role filter
+      if (searchParams.role && searchParams.role !== "all") {
+        query = query.eq("role", searchParams.role)
+      }
 
-  // Apply search filter
-  if (searchParams.search) {
-    query = query.or(`title.ilike.%${searchParams.search}%,content.ilike.%${searchParams.search}%`)
-  }
+      // Apply tag filter
+      if (searchParams.tag && searchParams.tag !== "all") {
+        query = query.contains("tags", [searchParams.tag])
+      }
 
-  // Apply sorting
-  if (searchParams.sort === "likes") {
-    query = query.order("likes", { ascending: false })
-  } else {
-    // Default to most recent
-    query = query.order("created_at", { ascending: false })
-  }
+      // Apply search filter
+      if (searchParams.search) {
+        query = query.or(`title.ilike.%${searchParams.search}%,content.ilike.%${searchParams.search}%`)
+      }
 
-  const { data: posts, error } = await query
+      // Apply sorting
+      if (searchParams.sort === "likes") {
+        query = query.order("likes", { ascending: false })
+      } else {
+        // Default to most recent
+        query = query.order("created_at", { ascending: false })
+      }
 
-  if (error) {
-    console.error("Error fetching posts:", error)
-  }
+      const { data: postsData, error } = await query
 
-  // Get all unique tags from posts for filter
-  const allTags: string[] = []
-  posts?.forEach((post) => {
-    if (post.tags && Array.isArray(post.tags)) {
-      post.tags.forEach((tag) => {
-        if (!allTags.includes(tag)) {
-          allTags.push(tag)
-        }
-      })
+      if (error) {
+        console.error("Error fetching posts:", error)
+      } else {
+        setPosts(postsData || [])
+
+        // Get all unique tags from posts for filter
+        const tags: string[] = []
+        postsData?.forEach((post) => {
+          if (post.tags && Array.isArray(post.tags)) {
+            post.tags.forEach((tag) => {
+              if (!tags.includes(tag)) {
+                tags.push(tag)
+              }
+            })
+          }
+        })
+        setAllTags(tags)
+      }
+
+      setLoading(false)
     }
-  })
+
+    fetchData()
+  }, [searchParams, supabase])
 
   return (
     <div className="container py-8">
@@ -180,7 +198,11 @@ export default async function PostsPage({
         </div>
       </div>
 
-      {posts?.length ? (
+      {loading ? (
+        <div className="flex justify-center py-12">
+          <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary"></div>
+        </div>
+      ) : posts?.length ? (
         <div className="space-y-6">
           {posts.map((post) => (
             <PostCard key={post.id} post={post} />

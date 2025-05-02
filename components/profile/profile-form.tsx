@@ -35,8 +35,8 @@ export function ProfileForm({ user, lawyerProfile }: ProfileFormProps) {
 
   // Set up real-time subscription for user updates
   useEffect(() => {
-    const channel = supabase
-      .channel("profile-changes")
+    const userChannel = supabase
+      .channel("user-profile-changes")
       .on(
         "postgres_changes",
         {
@@ -54,6 +54,11 @@ export function ProfileForm({ user, lawyerProfile }: ProfileFormProps) {
             phone: payload.new.phone || prev.phone,
             location: payload.new.location || prev.location,
           }))
+
+          toast({
+            title: "Profile Updated",
+            description: "Your profile information has been updated.",
+          })
         },
       )
       .subscribe()
@@ -80,13 +85,18 @@ export function ProfileForm({ user, lawyerProfile }: ProfileFormProps) {
               experience: payload.new.experience?.toString() || prev.experience,
               hourlyRate: payload.new.hourly_rate?.toString() || prev.hourlyRate,
             }))
+
+            toast({
+              title: "Lawyer Profile Updated",
+              description: "Your lawyer profile information has been updated.",
+            })
           },
         )
         .subscribe()
     }
 
     return () => {
-      supabase.removeChannel(channel)
+      supabase.removeChannel(userChannel)
       if (lawyerChannel) supabase.removeChannel(lawyerChannel)
     }
   }, [supabase, user])

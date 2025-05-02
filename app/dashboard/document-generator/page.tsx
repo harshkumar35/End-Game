@@ -16,7 +16,7 @@ import { ndaTemplate } from "@/lib/templates/nda-template"
 import { consultingAgreementTemplate } from "@/lib/templates/consulting-agreement-template"
 import { employmentAgreementTemplate } from "@/lib/templates/employment-agreement-template"
 import { Loader2, Download, FileText, Edit, Save } from "lucide-react"
-import { jsPDF } from "jspdf"
+import { fillTemplate, generatePdf } from "@/lib/utils/document-formatter"
 
 export default function DocumentGeneratorPage() {
   const router = useRouter()
@@ -29,6 +29,7 @@ export default function DocumentGeneratorPage() {
   const [generatedDocument, setGeneratedDocument] = useState("")
   const [editedDocument, setEditedDocument] = useState("")
   const textareaRef = useRef<HTMLTextAreaElement>(null)
+  const previewContainerRef = useRef<HTMLDivElement>(null)
 
   // NDA form fields
   const [ndaFields, setNdaFields] = useState({
@@ -143,33 +144,21 @@ export default function DocumentGeneratorPage() {
     }
 
     setIsLoading(true)
-    let filledTemplate = ""
+    let template = ""
+    let fields = {}
 
     if (selectedTemplate === "nda") {
-      filledTemplate = ndaTemplate
-      Object.keys(ndaFields).forEach((key) => {
-        filledTemplate = filledTemplate.replace(
-          new RegExp(`{{${key}}}`, "g"),
-          ndaFields[key as keyof typeof ndaFields] || "_________",
-        )
-      })
+      template = ndaTemplate
+      fields = ndaFields
     } else if (selectedTemplate === "consulting") {
-      filledTemplate = consultingAgreementTemplate
-      Object.keys(consultingFields).forEach((key) => {
-        filledTemplate = filledTemplate.replace(
-          new RegExp(`{{${key}}}`, "g"),
-          consultingFields[key as keyof typeof consultingFields] || "_________",
-        )
-      })
+      template = consultingAgreementTemplate
+      fields = consultingFields
     } else if (selectedTemplate === "employment") {
-      filledTemplate = employmentAgreementTemplate
-      Object.keys(employmentFields).forEach((key) => {
-        filledTemplate = filledTemplate.replace(
-          new RegExp(`{{${key}}}`, "g"),
-          employmentFields[key as keyof typeof employmentFields] || "_________",
-        )
-      })
+      template = employmentAgreementTemplate
+      fields = employmentFields
     }
+
+    const filledTemplate = fillTemplate(template, fields as Record<string, string>)
 
     setGeneratedDocument(filledTemplate)
     setEditedDocument(filledTemplate)
@@ -221,25 +210,16 @@ export default function DocumentGeneratorPage() {
   }
 
   const downloadAsPdf = () => {
-    const doc = new jsPDF()
     const content = editMode ? editedDocument : generatedDocument
     const title = documentTitle || "Document"
 
-    // Split content into lines
-    const lines = content.split("\n")
-    let y = 10
-    doc.setFontSize(10)
-
-    for (let i = 0; i < lines.length; i++) {
-      if (y > 280) {
-        doc.addPage()
-        y = 10
-      }
-      doc.text(lines[i], 10, y)
-      y += 5
-    }
-
-    doc.save(`${title}.pdf`)
+    generatePdf({
+      title,
+      content,
+      fontSize: 10,
+      lineHeight: 7,
+      margin: 20,
+    })
   }
 
   const downloadAsDocx = () => {
@@ -671,7 +651,11 @@ export default function DocumentGeneratorPage() {
                 className="font-mono text-sm h-[600px] whitespace-pre-wrap"
               />
             ) : (
-              <div className="bg-muted p-4 rounded-md h-[600px] overflow-auto whitespace-pre-wrap font-mono text-sm">
+              <div
+                ref={previewContainerRef}
+                id="previewContainer"
+                className="bg-muted p-4 rounded-md h-[600px] overflow-auto whitespace-pre-wrap font-mono text-sm"
+              >
                 {generatedDocument}
               </div>
             )}

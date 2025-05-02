@@ -7,6 +7,7 @@ import { Footer } from "@/components/layout/footer"
 import { ThemeProvider } from "@/components/theme-provider"
 import { Toaster } from "@/components/ui/toaster"
 import { SupabaseProvider } from "@/lib/supabase/provider"
+import { RealtimeProvider } from "@/lib/context/real-time-context"
 
 const inter = Inter({ subsets: ["latin"] })
 
@@ -26,12 +27,14 @@ export default function RootLayout({
       <body className={inter.className}>
         <SupabaseProvider>
           <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
-            <div className="flex min-h-screen flex-col">
-              <Navbar />
-              <main className="flex-1">{children}</main>
-              <Footer />
-            </div>
-            <Toaster />
+            <RealtimeProvider>
+              <div className="flex min-h-screen flex-col">
+                <Navbar />
+                <main className="flex-1">{children}</main>
+                <Footer />
+              </div>
+              <Toaster />
+            </RealtimeProvider>
           </ThemeProvider>
         </SupabaseProvider>
       </body>

@@ -1,25 +1,13 @@
 "use client"
 
+import Link from "next/link"
+import { Card, CardContent, CardHeader } from "@/components/ui/card"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Badge } from "@/components/ui/badge"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { formatDistanceToNow } from "date-fns"
-import Link from "next/link"
 
 interface PostCardProps {
-  post: {
-    id: string
-    title: string
-    content: string
-    created_at: string
-    image_url?: string
-    tags?: string[]
-    role?: string
-    users: {
-      full_name: string
-      avatar_url?: string
-    }
-  }
+  post: any
 }
 
 export function PostCard({ post }: PostCardProps) {
@@ -42,7 +30,7 @@ export function PostCard({ post }: PostCardProps) {
               </span>
             </div>
             <Link href={`/posts/${post.id}`} className="hover:underline">
-              <CardTitle className="text-lg">{post.title}</CardTitle>
+              <h3 className="text-lg font-semibold">{post.title}</h3>
             </Link>
           </div>
         </div>

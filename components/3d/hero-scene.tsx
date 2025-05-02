@@ -2,14 +2,13 @@
 
 import { useRef } from "react"
 import { Canvas, useFrame } from "@react-three/fiber"
-import { Environment, Text3D } from "@react-three/drei"
+import { Environment, Text3D, Float, Sparkles } from "@react-three/drei"
 import { useSpring, animated } from "@react-spring/three"
 import type * as THREE from "three"
 
 function Model({ scale = 1, position = [0, 0, 0] }) {
   const ref = useRef<THREE.Group>(null)
 
-  // Use a simple cube mesh instead of loading a model
   useFrame((state) => {
     if (ref.current) {
       ref.current.rotation.y = Math.sin(state.clock.getElapsedTime() * 0.3) * 0.2
@@ -17,12 +16,14 @@ function Model({ scale = 1, position = [0, 0, 0] }) {
   })
 
   return (
-    <group ref={ref} position={position} scale={scale}>
-      <mesh castShadow receiveShadow>
-        <boxGeometry args={[1, 1, 1]} />
-        <meshStandardMaterial color="#0ea5e9" metalness={0.6} roughness={0.2} />
-      </mesh>
-    </group>
+    <Float speed={2} rotationIntensity={0.5} floatIntensity={0.5}>
+      <group ref={ref} position={position} scale={scale}>
+        <mesh castShadow receiveShadow>
+          <boxGeometry args={[1, 1, 1]} />
+          <meshStandardMaterial color="#0ea5e9" metalness={0.6} roughness={0.2} />
+        </mesh>
+      </group>
+    </Float>
   )
 }
 
@@ -40,10 +41,22 @@ function FloatingText() {
 
   return (
     <animated.group position={springs.position as any}>
-      <Text3D font="/fonts/Inter_Bold.json" size={0.5} height={0.1} curveSegments={12} position={[-2, 0, 0]}>
-        LegalSathi
-        <meshStandardMaterial color="#0ea5e9" />
-      </Text3D>
+      <Float speed={1.5} rotationIntensity={0.2} floatIntensity={0.5}>
+        <Text3D
+          font="/fonts/Inter_Bold.json"
+          size={0.5}
+          height={0.1}
+          curveSegments={12}
+          position={[-2, 0, 0]}
+          bevelEnabled
+          bevelThickness={0.01}
+          bevelSize={0.01}
+          bevelSegments={5}
+        >
+          LegalSathi
+          <meshStandardMaterial color="#0ea5e9" metalness={0.8} roughness={0.2} />
+        </Text3D>
+      </Float>
     </animated.group>
   )
 }
@@ -59,16 +72,18 @@ function ScaleModel() {
   })
 
   return (
-    <mesh ref={ref} position={[2, 0, 0]}>
-      <cylinderGeometry args={[0.5, 0.5, 1, 32]} />
-      <meshStandardMaterial color="#0ea5e9" metalness={0.6} roughness={0.2} />
-    </mesh>
+    <Float speed={3} rotationIntensity={1} floatIntensity={1}>
+      <mesh ref={ref} position={[2, 0, 0]}>
+        <cylinderGeometry args={[0.5, 0.5, 1, 32]} />
+        <meshStandardMaterial color="#0ea5e9" metalness={0.6} roughness={0.2} />
+      </mesh>
+    </Float>
   )
 }
 
 export function HeroScene() {
   return (
-    <div className="w-full h-[400px]">
+    <div className="w-full h-full">
       <Canvas shadows camera={{ position: [0, 0, 5], fov: 50 }}>
         <ambientLight intensity={0.5} />
         <spotLight position={[10, 10, 10]} angle={0.15} penumbra={1} castShadow />
@@ -77,6 +92,8 @@ export function HeroScene() {
         <Model scale={1} position={[-2, -1, 0]} />
         <ScaleModel />
         <FloatingText />
+
+        <Sparkles count={100} scale={10} size={1} speed={0.3} color="#0ea5e9" />
 
         <Environment preset="city" />
       </Canvas>
