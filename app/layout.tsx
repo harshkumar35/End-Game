@@ -7,7 +7,7 @@ import { Navbar } from "@/components/layout/navbar"
 import { Footer } from "@/components/layout/footer"
 import { RealtimeProvider } from "@/lib/context/real-time-context"
 import { SupabaseProvider } from "@/lib/supabase/provider"
-import Script from "next/script"
+import { BotpressChat } from "@/components/chat/botpress-chat"
 
 const inter = Inter({ subsets: ["latin"] })
 
@@ -25,6 +25,7 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body className={inter.className}>
+        {/* Wrap everything in a single SupabaseProvider */}
         <SupabaseProvider>
           <ThemeProvider attribute="class" defaultTheme="light" enableSystem>
             <RealtimeProvider>
@@ -33,16 +34,11 @@ export default function RootLayout({
                 <main className="flex-1">{children}</main>
                 <Footer />
               </div>
+              {/* Add the Botpress chat component */}
+              <BotpressChat />
             </RealtimeProvider>
           </ThemeProvider>
         </SupabaseProvider>
-
-        {/* Botpress Chatbot Scripts */}
-        <Script src="https://cdn.botpress.cloud/webchat/v2.4/inject.js" strategy="beforeInteractive" />
-        <Script
-          src="https://files.bpcontent.cloud/2025/05/04/06/20250504065744-37MIVWKZ.js"
-          strategy="beforeInteractive"
-        />
       </body>
     </html>
   )

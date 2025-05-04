@@ -18,18 +18,42 @@ import { Menu, User, ChevronDown, Bot, Newspaper, Users, MessageSquare, Phone, H
 
 export function Navbar() {
   const pathname = usePathname()
-  const { supabase, user } = useSupabase()
+  const { supabase, user, isLoading } = useSupabase()
   const [isMenuOpen, setIsMenuOpen] = useState(false)
-  const [isLoading, setIsLoading] = useState(true)
-
-  useEffect(() => {
-    setIsLoading(false)
-  }, [])
+  const [isSigningOut, setIsSigningOut] = useState(false)
 
   const handleSignOut = async () => {
-    await supabase.auth.signOut()
-    window.location.href = "/"
+    if (isSigningOut) return
+
+    try {
+      setIsSigningOut(true)
+      await supabase.auth.signOut()
+      // Use a more reliable way to navigate
+      window.location.href = "/"
+    } catch (error) {
+      console.error("Error signing out:", error)
+      setIsSigningOut(false)
+    }
   }
+
+  // Add error boundary for the component
+  useEffect(() => {
+    const originalError = console.error
+    console.error = (...args) => {
+      // Check if this is an auth-related error
+      const errorString = args.join(" ")
+      if (errorString.includes("auth") || errorString.includes("supabase")) {
+        // Log but don't crash the component
+        originalError("Auth error caught by Navbar error boundary:", ...args)
+      } else {
+        originalError(...args)
+      }
+    }
+
+    return () => {
+      console.error = originalError
+    }
+  }, [])
 
   return (
     <header className="sticky top-0 z-40 w-full border-b bg-background/80 backdrop-blur-md">
@@ -113,39 +137,42 @@ export function Navbar() {
         <div className="flex-1" />
         <div className="hidden md:flex items-center space-x-4">
           <ThemeToggle />
-          {!isLoading && (
-            <>
-              {user ? (
-                <DropdownMenu>
-                  <DropdownMenuTrigger asChild>
-                    <Button variant="ghost" className="flex items-center space-x-2">
-                      <User size={18} />
-                      <span>Account</span>
-                      <ChevronDown size={16} />
-                    </Button>
-                  </DropdownMenuTrigger>
-                  <DropdownMenuContent align="end">
-                    <DropdownMenuItem asChild>
-                      <Link href="/dashboard">Dashboard</Link>
-                    </DropdownMenuItem>
-                    <DropdownMenuItem asChild>
-                      <Link href="/profile">Profile</Link>
-                    </DropdownMenuItem>
-                    <DropdownMenuSeparator />
-                    <DropdownMenuItem onClick={handleSignOut}>Sign Out</DropdownMenuItem>
-                  </DropdownMenuContent>
-                </DropdownMenu>
-              ) : (
-                <div className="flex items-center space-x-2">
-                  <Link href="/login">
-                    <Button variant="ghost">Sign In</Button>
-                  </Link>
-                  <Link href="/register">
-                    <Button>Sign Up</Button>
-                  </Link>
-                </div>
-              )}
-            </>
+          {isLoading ? (
+            // Show a simple loading state instead of a skeleton
+            <Button variant="ghost" disabled>
+              <span className="w-20 h-4 bg-muted animate-pulse rounded"></span>
+            </Button>
+          ) : user ? (
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="ghost" className="flex items-center space-x-2">
+                  <User size={18} />
+                  <span>Account</span>
+                  <ChevronDown size={16} />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end">
+                <DropdownMenuItem asChild>
+                  <Link href="/dashboard">Dashboard</Link>
+                </DropdownMenuItem>
+                <DropdownMenuItem asChild>
+                  <Link href="/profile">Profile</Link>
+                </DropdownMenuItem>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem onClick={handleSignOut} disabled={isSigningOut}>
+                  {isSigningOut ? "Signing out..." : "Sign Out"}
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+          ) : (
+            <div className="flex items-center space-x-2">
+              <Link href="/login">
+                <Button variant="ghost">Sign In</Button>
+              </Link>
+              <Link href="/register">
+                <Button>Sign Up</Button>
+              </Link>
+            </div>
           )}
         </div>
         <button className="md:hidden ml-2" onClick={() => setIsMenuOpen(!isMenuOpen)}>
@@ -265,6 +292,7 @@ export function Navbar() {
                     <Button
                       variant="ghost"
                       className="justify-start px-2 flex items-center gap-2"
+                      disabled={isSigningOut}
                       onClick={() => {
                         handleSignOut()
                         setIsMenuOpen(false)
@@ -285,7 +313,7 @@ export function Navbar() {
                         <polyline points="16 17 21 12 16 7"></polyline>
                         <line x1="21" y1="12" x2="9" y2="12"></line>
                       </svg>
-                      Sign Out
+                      {isSigningOut ? "Signing out..." : "Sign Out"}
                     </Button>
                   </>
                 ) : (

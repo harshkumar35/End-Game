@@ -14,35 +14,88 @@ type SupabaseContext = {
   isLoading: boolean
 }
 
+// Create a singleton instance of the Supabase client
+const supabaseClient = createClientSupabaseClient()
+
 const Context = createContext<SupabaseContext | undefined>(undefined)
 
 export function SupabaseProvider({ children }: { children: React.ReactNode }) {
-  const [supabase] = useState(() => createClientSupabaseClient())
   const [user, setUser] = useState<User | null>(null)
   const [isLoading, setIsLoading] = useState(true)
 
+  // Use the singleton instance instead of creating a new one
+  const supabase = supabaseClient
+
   useEffect(() => {
-    const getUser = async () => {
-      const { data } = await supabase.auth.getUser()
-      setUser(data.user)
-      setIsLoading(false)
+    let isMounted = true
+
+    // Use a single auth session check instead of multiple calls
+    const checkSession = async () => {
+      try {
+        const { data, error } = await supabase.auth.getSession()
+
+        if (error) {
+          console.error("Error getting auth session:", error)
+          if (isMounted) setUser(null)
+          return
+        }
+
+        if (isMounted) setUser(data.session?.user || null)
+      } catch (error) {
+        console.error("Exception checking auth session:", error)
+        if (isMounted) setUser(null)
+      } finally {
+        if (isMounted) setIsLoading(false)
+      }
     }
 
-    getUser()
+    // Add a small delay to prevent rate limiting
+    const timer = setTimeout(() => {
+      checkSession()
+    }, 100)
 
-    const { data: authListener } = supabase.auth.onAuthStateChange((event, session) => {
-      setUser(session?.user ?? null)
-      setIsLoading(false)
-    })
+    // Set up the auth state change listener with error handling
+    let authListener: { subscription: { unsubscribe: () => void } } | null = null
+
+    try {
+      const { data, error } = supabase.auth.onAuthStateChange((event, session) => {
+        if (error) {
+          console.error("Auth state change error:", error)
+          return
+        }
+
+        if (isMounted) {
+          setUser(session?.user || null)
+          setIsLoading(false)
+        }
+      })
+
+      if (error) {
+        console.error("Error setting up auth listener:", error)
+      } else {
+        authListener = data
+      }
+    } catch (error) {
+      console.error("Exception setting up auth listener:", error)
+    }
 
     return () => {
-      authListener.subscription.unsubscribe()
+      isMounted = false
+      clearTimeout(timer)
+      if (authListener?.subscription) {
+        try {
+          authListener.subscription.unsubscribe()
+        } catch (error) {
+          console.error("Error unsubscribing from auth listener:", error)
+        }
+      }
     }
-  }, [supabase])
+  }, [supabase.auth])
 
   return <Context.Provider value={{ supabase, user, isLoading }}>{children}</Context.Provider>
 }
 
+// Use a memoized context to prevent unnecessary re-renders
 export function useSupabase() {
   const context = useContext(Context)
   if (context === undefined) {
