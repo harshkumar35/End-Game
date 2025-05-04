@@ -10,10 +10,12 @@ export async function GET(request: NextRequest) {
   const code = requestUrl.searchParams.get("code")
 
   if (code) {
-    const supabase = createRouteHandlerClient<Database>({ cookies })
+    const cookieStore = cookies()
+    const supabase = createRouteHandlerClient<Database>({ cookies: () => cookieStore })
     await supabase.auth.exchangeCodeForSession(code)
   }
 
   // URL to redirect to after sign in process completes
-  return NextResponse.redirect(requestUrl.origin)
+  // Use the deployed URL instead of the origin to ensure proper redirection
+  return NextResponse.redirect(new URL("/dashboard", "https://v0-legalsathi.vercel.app"))
 }

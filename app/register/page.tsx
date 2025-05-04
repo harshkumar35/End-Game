@@ -64,7 +64,8 @@ export default function RegisterPage() {
             full_name: formData.fullName,
             role: formData.role,
           },
-          emailRedirectTo: `${window.location.origin}/auth/callback`,
+          // Use the deployed URL for email confirmation redirects
+          emailRedirectTo: `https://v0-legalsathi.vercel.app/auth/callback`,
         },
       })
 

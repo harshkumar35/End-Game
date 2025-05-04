@@ -30,13 +30,15 @@ export default function LoginPage() {
     const message = searchParams.get("message")
     if (message === "confirmed") {
       setSuccess("Email confirmed successfully! You can now log in.")
+    } else if (message === "password-reset") {
+      setSuccess("Password reset successfully! You can now log in with your new password.")
     }
   }, [searchParams])
 
   // Redirect if already logged in
   useEffect(() => {
     if (user && !authLoading) {
-      router.push("/dashboard")
+      router.push("/")
     }
   }, [user, authLoading, router])
 
@@ -65,7 +67,8 @@ export default function LoginPage() {
         description: "Welcome back to LegalSathi.",
       })
 
-      router.push("/dashboard")
+      // Redirect to home page instead of dashboard
+      router.push("/")
       router.refresh()
     } catch (error: any) {
       setError(error.message || "Invalid email or password.")
