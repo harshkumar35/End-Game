@@ -8,9 +8,6 @@ import type { SupabaseClient } from "@supabase/auth-helpers-nextjs"
 import type { User } from "@supabase/supabase-js"
 import type { Database } from "@/lib/types/database.types"
 
-// Make sure we're not importing createServerSupabaseClient here
-// import { createServerSupabaseClient } from "./server"; // Remove this line if it exists
-
 type SupabaseContext = {
   supabase: SupabaseClient<Database>
   user: User | null
@@ -52,4 +49,15 @@ export function useSupabase() {
     throw new Error("useSupabase must be used inside SupabaseProvider")
   }
   return context
+}
+
+// Add the missing exports
+export function useSupabaseClient() {
+  const { supabase } = useSupabase()
+  return supabase
+}
+
+export function useUser() {
+  const { user } = useSupabase()
+  return user
 }

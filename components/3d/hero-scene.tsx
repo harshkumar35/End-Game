@@ -2,7 +2,7 @@
 
 import { useRef } from "react"
 import { Canvas, useFrame } from "@react-three/fiber"
-import { Environment, Text3D, Float, Sparkles } from "@react-three/drei"
+import { Environment, Text3D, Float, Sparkles, OrbitControls } from "@react-three/drei"
 import { useSpring, animated } from "@react-spring/three"
 import type * as THREE from "three"
 
@@ -81,7 +81,8 @@ function ScaleModel() {
   )
 }
 
-export function HeroScene() {
+// Change to default export
+const HeroScene = () => {
   return (
     <div className="w-full h-full">
       <Canvas shadows camera={{ position: [0, 0, 5], fov: 50 }}>
@@ -96,7 +97,11 @@ export function HeroScene() {
         <Sparkles count={100} scale={10} size={1} speed={0.3} color="#0ea5e9" />
 
         <Environment preset="city" />
+        <OrbitControls enableZoom={false} enablePan={false} />
       </Canvas>
     </div>
   )
 }
+
+// Export both as default and named export to ensure compatibility
+export default HeroScene

@@ -116,3 +116,5 @@ export function RealtimeProvider({ children }: { children: React.ReactNode }) {
     </RealtimeContext.Provider>
   )
 }
+
+export { RealtimeProvider as RealTimeProvider }
