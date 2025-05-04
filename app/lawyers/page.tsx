@@ -20,7 +20,6 @@ export default async function LawyersPage({
         id,
         email,
         full_name,
-        avatar_url,
         role,
         lawyer_profiles (*)
       `,
