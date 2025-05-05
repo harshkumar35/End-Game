@@ -13,14 +13,14 @@ interface LawyerCardProps {
 
 export function LawyerCard({ lawyer }: LawyerCardProps) {
   return (
-    <Card className="overflow-hidden">
+    <Card className="overflow-hidden hover:shadow-lg transition-shadow">
       <CardHeader className="pb-0">
         <div className="flex items-start gap-4">
-          <Avatar className="h-12 w-12">
-            <AvatarFallback>{lawyer.full_name.charAt(0)}</AvatarFallback>
+          <Avatar className="h-12 w-12 bg-primary/20">
+            <AvatarFallback>{lawyer.full_name?.charAt(0) || "L"}</AvatarFallback>
           </Avatar>
           <div className="space-y-1">
-            <CardTitle>{lawyer.full_name}</CardTitle>
+            <CardTitle>{lawyer.full_name || "Anonymous Lawyer"}</CardTitle>
             <CardDescription>{lawyer.lawyer_profiles?.[0]?.specialization || "General Practice"}</CardDescription>
             <div className="flex items-center">
               {Array(5)
@@ -40,7 +40,9 @@ export function LawyerCard({ lawyer }: LawyerCardProps) {
               "Experienced legal professional dedicated to helping clients navigate complex legal matters."}
           </p>
           {lawyer.lawyer_profiles?.[0]?.headline && (
-            <Badge variant="outline">{lawyer.lawyer_profiles?.[0]?.headline}</Badge>
+            <Badge variant="outline" className="bg-primary/10">
+              {lawyer.lawyer_profiles?.[0]?.headline}
+            </Badge>
           )}
           <div className="mt-4 flex items-center justify-between text-sm">
             <div>
@@ -49,13 +51,13 @@ export function LawyerCard({ lawyer }: LawyerCardProps) {
             </div>
             <div>
               <span className="font-medium">Rate:</span>{" "}
-              <span className="text-muted-foreground">${lawyer.lawyer_profiles?.[0]?.hourly_rate || 0}/hr</span>
+              <span className="text-muted-foreground">₹{lawyer.lawyer_profiles?.[0]?.hourly_rate || 0}/hr</span>
             </div>
           </div>
         </div>
       </CardContent>
       <CardFooter className="border-t pt-4">
-        <Button asChild className="w-full">
+        <Button asChild className="w-full gradient-bg">
           <Link href={`/lawyers/${lawyer.id}`}>View Profile</Link>
         </Button>
       </CardFooter>

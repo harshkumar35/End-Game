@@ -1,43 +1,68 @@
-import Image from "next/image"
-import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
+import Link from "next/link"
+import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
-import { Calendar, ExternalLink } from "lucide-react"
-import type { NewsArticle } from "@/lib/types/news"
+import { ExternalLink, Calendar } from "lucide-react"
+import { Badge } from "@/components/ui/badge"
+import type { NewsItem } from "@/lib/services/news-service"
 
-// Remove any imports from next/headers
-// import { cookies } from 'next/headers'; // Remove this line if it exists
+interface NewsCardProps {
+  news: NewsItem
+}
 
-export function NewsCard({ article }: { article: NewsArticle }) {
-  const formattedDate = new Date(article.pubDate).toLocaleDateString("en-US", {
-    year: "numeric",
-    month: "long",
-    day: "numeric",
-  })
+export function NewsCard({ news }: NewsCardProps) {
+  // Format date
+  const formattedDate = news.pubDate
+    ? new Date(news.pubDate).toLocaleDateString("en-US", {
+        year: "numeric",
+        month: "long",
+        day: "numeric",
+      })
+    : "Unknown date"
 
   return (
-    <Card className="h-full flex flex-col">
+    <Card className="overflow-hidden hover:shadow-lg transition-shadow">
       <CardHeader>
-        <CardTitle className="line-clamp-2">{article.title}</CardTitle>
-      </CardHeader>
-      <CardContent className="flex-1">
-        {article.imageUrl && (
-          <div className="mb-4 aspect-video relative overflow-hidden rounded-md">
-            <Image src={article.imageUrl || "/placeholder.svg"} alt={article.title} fill className="object-cover" />
+        <div className="flex justify-between items-start gap-4">
+          <div>
+            <CardTitle className="text-xl">{news.title}</CardTitle>
+            <CardDescription className="flex items-center mt-2">
+              <Calendar className="h-4 w-4 mr-2" />
+              {formattedDate}
+              {news.source_name && <span className="ml-4">{news.source_name}</span>}
+            </CardDescription>
           </div>
-        )}
-        <p className="text-sm text-muted-foreground line-clamp-3 mb-2">
-          {article.description || "No description available."}
-        </p>
-        <div className="flex items-center text-xs text-muted-foreground">
-          <Calendar className="mr-1 h-3 w-3" />
-          <span>{formattedDate}</span>
+          {news.image_url && (
+            <div className="w-24 h-24 rounded-md overflow-hidden flex-shrink-0">
+              <img
+                src={news.image_url || "/placeholder.svg"}
+                alt={news.title}
+                className="w-full h-full object-cover"
+                onError={(e) => {
+                  // Handle image loading errors
+                  e.currentTarget.style.display = "none"
+                }}
+              />
+            </div>
+          )}
+        </div>
+      </CardHeader>
+      <CardContent>
+        <p className="text-muted-foreground mb-4">{news.description || news.content || "No description available"}</p>
+        <div className="flex flex-wrap gap-2">
+          {news.category &&
+            news.category.map((cat, index) => (
+              <Badge key={index} variant="outline" className="bg-primary/10">
+                {cat}
+              </Badge>
+            ))}
         </div>
       </CardContent>
-      <CardFooter>
-        <Button asChild variant="outline" size="sm" className="w-full">
-          <a href={article.link} target="_blank" rel="noopener noreferrer" className="flex items-center">
-            Read More <ExternalLink className="ml-1 h-3 w-3" />
-          </a>
+      <CardFooter className="border-t pt-4">
+        <Button asChild className="gradient-bg w-full sm:w-auto">
+          <Link href={news.link} target="_blank" rel="noopener noreferrer">
+            <ExternalLink className="h-4 w-4 mr-2" />
+            Read Full Article
+          </Link>
         </Button>
       </CardFooter>
     </Card>

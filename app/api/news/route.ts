@@ -14,6 +14,9 @@ export async function GET(request: Request) {
     return NextResponse.json(news)
   } catch (error) {
     console.error("Error in news API route:", error)
-    return NextResponse.json({ error: "Failed to fetch news" }, { status: 500 })
+    return NextResponse.json(
+      { error: "Failed to fetch news", status: "error", totalResults: 0, results: [] },
+      { status: 500 },
+    )
   }
 }

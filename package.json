@@ -59,20 +59,12 @@
     "vaul": "^0.9.6",
     "zod": "^3.24.1",
     "@supabase/supabase-js": "latest",
-    "expo": "latest",
-    "expo-asset": "latest",
-    "expo-file-system": "latest",
-    "expo-gl": "latest",
-    "react-native": "latest",
-    "three": "latest",
-    "@react-three/fiber": "latest",
     "jspdf": "latest",
     "@supabase/auth-helpers-nextjs": "latest",
     "fs": "latest",
     "path": "latest",
     "child_process": "latest",
-    "@react-three/drei": "latest",
-    "@react-spring/three": "latest"
+    "three": "latest"
   },
   "devDependencies": {
     "@types/node": "^22",

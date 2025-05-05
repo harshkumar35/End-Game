@@ -10,12 +10,58 @@ export function BotpressChat() {
     // Check if we're in the browser
     if (typeof window === "undefined") return
 
-    // Load the Botpress script
-    const loadBotpress = async () => {
+    // Define a function to initialize Botpress
+    const initBotpress = () => {
       try {
-        // Check if Botpress is already loaded
         if (window.botpressWebChat) {
+          window.botpressWebChat.init({
+            composerPlaceholder: "Chat with LegalSathi",
+            botConversationDescription: "Legal Assistant Bot",
+            botId: "37MIVWKZ",
+            hostUrl: "https://cdn.botpress.cloud/webchat/v2.4",
+            messagingUrl: "https://messaging.botpress.cloud",
+            clientId: "37MIVWKZ",
+            webhookId: "37MIVWKZ",
+            lazySocket: true,
+            themeName: "prism",
+            frontendVersion: "v2.4",
+            showPoweredBy: false,
+            theme: "light",
+            themeColor: "#9333ea", // Updated to match our purple theme
+          })
+          console.log("Botpress WebChat initialized")
           setIsLoaded(true)
+        } else {
+          console.error("Botpress WebChat not available")
+          setError("Botpress WebChat not available")
+        }
+      } catch (err) {
+        console.error("Error initializing Botpress:", err)
+        setError("Failed to initialize chat")
+      }
+    }
+
+    // Load the Botpress script
+    const loadBotpress = () => {
+      try {
+        // Check if script is already added to DOM
+        if (document.querySelector('script[src="https://cdn.botpress.cloud/webchat/v2.4/inject.js"]')) {
+          console.log("Botpress script already loaded")
+          // Wait for Botpress to be available
+          if (window.botpressWebChat) {
+            initBotpress()
+          } else {
+            // If already loaded but not initialized, try again after a delay
+            const checkInterval = setInterval(() => {
+              if (window.botpressWebChat) {
+                clearInterval(checkInterval)
+                initBotpress()
+              }
+            }, 500)
+
+            // Clear interval after 10 seconds to prevent infinite checks
+            setTimeout(() => clearInterval(checkInterval), 10000)
+          }
           return
         }
 
@@ -27,34 +73,7 @@ export function BotpressChat() {
           console.log("Botpress script loaded")
 
           // Wait a moment to ensure everything is initialized
-          setTimeout(() => {
-            if (window.botpressWebChat) {
-              try {
-                window.botpressWebChat.init({
-                  composerPlaceholder: "Chat with LegalSathi",
-                  botConversationDescription: "Legal Assistant Bot",
-                  botId: "37MIVWKZ",
-                  hostUrl: "https://cdn.botpress.cloud/webchat/v2.4",
-                  messagingUrl: "https://messaging.botpress.cloud",
-                  clientId: "37MIVWKZ",
-                  webhookId: "37MIVWKZ",
-                  lazySocket: true,
-                  themeName: "prism",
-                  frontendVersion: "v2.4",
-                  showPoweredBy: false,
-                  theme: "light",
-                  themeColor: "#2563EB",
-                })
-                setIsLoaded(true)
-                console.log("Botpress WebChat initialized")
-              } catch (err) {
-                console.error("Error initializing Botpress:", err)
-                setError("Failed to initialize chat")
-              }
-            } else {
-              setError("Botpress WebChat not available")
-            }
-          }, 1000)
+          setTimeout(initBotpress, 1000)
         }
 
         script.onerror = () => {
@@ -69,11 +88,12 @@ export function BotpressChat() {
       }
     }
 
-    loadBotpress()
+    // Add a delay to ensure the page is fully loaded
+    const timer = setTimeout(loadBotpress, 2000)
 
     // Cleanup function
     return () => {
-      // Clean up any listeners or resources if needed
+      clearTimeout(timer)
     }
   }, [])
 

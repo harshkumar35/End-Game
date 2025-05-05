@@ -1,73 +1,62 @@
-import type { NewsApiResponse, NewsItem } from "@/lib/types/news"
+import type { NewsItem } from "@/lib/types/news"
 
-const API_KEY = "pub_778092f75ef1d8139a2255a4f61fca69cf027"
-const BASE_URL = "https://newsdata.io/api/1/news"
+export interface NewsResponse {
+  status: string
+  totalResults: number
+  results: NewsItem[]
+  nextPage?: string
+}
 
-// Cache for API responses
-const cache = new Map<string, { data: NewsApiResponse; timestamp: number }>()
-const CACHE_TTL = 5 * 60 * 1000 // 5 minutes
-
-// This is the original function that other parts of the app are expecting
-export async function fetchNews(category?: string, query?: string, page = 1, pageSize = 10): Promise<NewsApiResponse> {
+export async function fetchNews(category?: string, query?: string, page = 1, pageSize = 10): Promise<NewsResponse> {
   try {
-    // Build cache key
-    const cacheKey = `${category || "all"}-${query || "none"}-${page}-${pageSize}`
+    // Create base URL - note the correct API key format
+    const baseUrl = "https://newsdata.io/api/1/news?apikey=pub_8499121c4468c0323c93c3b29a7c8ce7596c5"
 
-    // Check cache
-    const cachedData = cache.get(cacheKey)
-    if (cachedData && Date.now() - cachedData.timestamp < CACHE_TTL) {
-      return cachedData.data
-    }
+    // Add parameters
+    const params = new URLSearchParams()
+    if (category) params.append("category", category)
+    if (query) params.append("q", query)
+    params.append("country", "in")
+    params.append("language", "en")
 
-    // Build query params
-    const params = new URLSearchParams({
-      apikey: API_KEY,
-      language: "en,hi",
-      country: "in",
-      size: pageSize.toString(),
-    })
-
-    if (category) {
-      params.append("category", category)
-    } else {
-      params.append("category", "business,crime,politics,technology,top")
-    }
-
-    if (query) {
-      params.append("q", `${query} AND (legal OR justice OR law)`)
-    } else {
-      params.append("q", "legal AND justice")
-    }
-
-    if (page > 1 && page <= 10) {
-      // API only supports up to page 10
+    // Handle pagination
+    if (page > 1 && pageSize) {
       params.append("page", page.toString())
+      params.append("size", pageSize.toString())
     }
 
-    // Fetch data
-    const response = await fetch(`${BASE_URL}?${params.toString()}`, {
-      next: { revalidate: 300 }, // Revalidate every 5 minutes
+    // Construct the URL
+    const url = `${baseUrl}&${params.toString()}`
+    console.log("Fetching news from:", url)
+
+    // Fetch the data
+    const response = await fetch(url, {
+      cache: "no-store",
+      headers: {
+        Accept: "application/json",
+      },
     })
 
     if (!response.ok) {
-      throw new Error(`News API returned ${response.status}: ${response.statusText}`)
+      throw new Error(`News API error: ${response.status} ${response.statusText}`)
     }
 
-    const data: NewsApiResponse = await response.json()
+    const data = await response.json()
 
-    // Cache the response
-    cache.set(cacheKey, { data, timestamp: Date.now() })
-
-    return data
+    // Transform the response to match our interface
+    return {
+      status: data.status,
+      totalResults: data.totalResults || 0,
+      results: data.results || [],
+      nextPage: data.nextPage,
+    }
   } catch (error) {
     console.error("Error fetching news:", error)
-
-    // Return fallback data
+    // Return empty results on error
     return {
       status: "error",
       totalResults: 0,
       results: [],
-      nextPage: null,
     }
   }
 }
@@ -121,6 +110,7 @@ export function getFallbackNews(): NewsItem[] {
       category: ["politics"],
       country: ["us"],
       language: "english",
+      article_id: "1",
     },
     {
       title: "New Legislation Aims to Reform Corporate Liability Laws",
@@ -134,6 +124,7 @@ export function getFallbackNews(): NewsItem[] {
       category: ["politics"],
       country: ["us"],
       language: "english",
+      article_id: "2",
     },
     {
       title: "Legal Aid Organizations Report Surge in Housing Cases",
@@ -147,6 +138,7 @@ export function getFallbackNews(): NewsItem[] {
       category: ["business"],
       country: ["us"],
       language: "english",
+      article_id: "3",
     },
   ]
 }

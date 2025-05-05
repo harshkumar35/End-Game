@@ -254,14 +254,14 @@ export default function DocumentGeneratorPage() {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-3xl font-bold tracking-tight">Document Generator</h1>
+        <h1 className="text-3xl font-bold tracking-tight animated-gradient-text">Document Generator</h1>
         <p className="text-muted-foreground">Create legal documents from templates</p>
       </div>
 
       {!previewMode ? (
         <Card>
           <CardHeader>
-            <CardTitle>Generate a Document</CardTitle>
+            <CardTitle className="text-primary">Generate a Document</CardTitle>
             <CardDescription>Select a template and fill in the required information</CardDescription>
           </CardHeader>
           <CardContent>
@@ -613,7 +613,7 @@ export default function DocumentGeneratorPage() {
           <CardHeader>
             <div className="flex items-center justify-between">
               <div>
-                <CardTitle>{documentTitle}</CardTitle>
+                <CardTitle className="text-primary">{documentTitle}</CardTitle>
                 <CardDescription>
                   {selectedTemplate === "nda"
                     ? "Non-Disclosure Agreement"

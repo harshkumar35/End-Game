@@ -12,7 +12,7 @@ export default async function LawyersPage({
   const supabase = createServerSupabaseClient()
 
   try {
-    // Build query - simplified to avoid any reference to is_available
+    // Build query to get only verified lawyers with lawyer profiles
     let query = supabase
       .from("users")
       .select(
@@ -25,6 +25,8 @@ export default async function LawyersPage({
       `,
       )
       .eq("role", "lawyer")
+      // Only get profiles where lawyer_profiles exist (using inner join)
+      .not("lawyer_profiles", "is", null)
 
     // Apply specialization filter
     if (searchParams.specialization && searchParams.specialization !== "all") {
@@ -62,7 +64,7 @@ export default async function LawyersPage({
       <div className="container py-8">
         <div className="space-y-4 mb-8">
           <div>
-            <h1 className="text-3xl font-bold tracking-tight">Find Lawyers</h1>
+            <h1 className="text-3xl font-bold tracking-tight animated-gradient-text">Find Lawyers</h1>
             <p className="text-muted-foreground">Connect with experienced lawyers for your legal needs</p>
           </div>
 

@@ -7,22 +7,22 @@ export default function Home() {
   return (
     <main className="flex min-h-screen flex-col items-center">
       {/* Hero Section */}
-      <section className="w-full bg-gradient-to-b from-sky-50 to-white">
+      <section className="w-full cawar-bg text-white">
         <div className="container mx-auto px-4 py-16 md:py-24">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 items-center">
             <div className="space-y-6">
-              <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold text-gray-900">
-                Legal Solutions <span className="text-sky-500">Simplified</span>
+              <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold">
+                Legal Solutions <span className="text-white opacity-90">Simplified</span>
               </h1>
-              <p className="text-lg md:text-xl text-gray-600">
+              <p className="text-lg md:text-xl text-white/80">
                 Connect with expert lawyers, access legal resources, and get the legal assistance you need, all in one
                 place.
               </p>
               <div className="flex flex-wrap gap-4">
-                <Button asChild size="lg" className="bg-sky-500 hover:bg-sky-600">
+                <Button asChild size="lg" className="bg-white text-primary hover:bg-white/90">
                   <Link href="/lawyers">Find a Lawyer</Link>
                 </Button>
-                <Button asChild variant="outline" size="lg">
+                <Button asChild variant="outline" size="lg" className="border-white text-white hover:bg-white/20">
                   <Link href="/register">Join as a Lawyer</Link>
                 </Button>
               </div>
@@ -35,15 +35,17 @@ export default function Home() {
       {/* Services Section */}
       <section className="w-full py-16 bg-white">
         <div className="container mx-auto px-4">
-          <h2 className="text-3xl md:text-4xl font-bold text-center mb-12">Our Legal Services</h2>
+          <h2 className="text-3xl md:text-4xl font-bold text-center mb-12 animated-gradient-text">
+            Our Legal Services
+          </h2>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {/* Legal Assistance Card */}
-            <Card className="hover:shadow-lg transition-shadow">
-              <CardContent className="p-6">
-                <div className="h-12 w-12 bg-sky-100 rounded-lg flex items-center justify-center mb-4">
+            <Card className="hover:shadow-lg transition-shadow border-0 hover:translate-y-[-5px]">
+              <CardContent className="p-6 space-y-4">
+                <div className="h-12 w-12 bg-primary/10 rounded-lg flex items-center justify-center mb-4">
                   <svg
                     xmlns="http://www.w3.org/2000/svg"
-                    className="h-6 w-6 text-sky-500"
+                    className="h-6 w-6 text-primary"
                     fill="none"
                     viewBox="0 0 24 24"
                     stroke="currentColor"
@@ -62,12 +64,12 @@ export default function Home() {
             </Card>
 
             {/* AI Assistant Card */}
-            <Card className="hover:shadow-lg transition-shadow">
-              <CardContent className="p-6">
-                <div className="h-12 w-12 bg-sky-100 rounded-lg flex items-center justify-center mb-4">
+            <Card className="hover:shadow-lg transition-shadow border-0 hover:translate-y-[-5px]">
+              <CardContent className="p-6 space-y-4">
+                <div className="h-12 w-12 bg-primary/10 rounded-lg flex items-center justify-center mb-4">
                   <svg
                     xmlns="http://www.w3.org/2000/svg"
-                    className="h-6 w-6 text-sky-500"
+                    className="h-6 w-6 text-primary"
                     fill="none"
                     viewBox="0 0 24 24"
                     stroke="currentColor"
@@ -91,12 +93,12 @@ export default function Home() {
             </Card>
 
             {/* Legal News Card */}
-            <Card className="hover:shadow-lg transition-shadow">
-              <CardContent className="p-6">
-                <div className="h-12 w-12 bg-sky-100 rounded-lg flex items-center justify-center mb-4">
+            <Card className="hover:shadow-lg transition-shadow border-0 hover:translate-y-[-5px]">
+              <CardContent className="p-6 space-y-4">
+                <div className="h-12 w-12 bg-primary/10 rounded-lg flex items-center justify-center mb-4">
                   <svg
                     xmlns="http://www.w3.org/2000/svg"
-                    className="h-6 w-6 text-sky-500"
+                    className="h-6 w-6 text-primary"
                     fill="none"
                     viewBox="0 0 24 24"
                     stroke="currentColor"
@@ -118,12 +120,12 @@ export default function Home() {
             </Card>
 
             {/* Community Card */}
-            <Card className="hover:shadow-lg transition-shadow">
-              <CardContent className="p-6">
-                <div className="h-12 w-12 bg-sky-100 rounded-lg flex items-center justify-center mb-4">
+            <Card className="hover:shadow-lg transition-shadow border-0 hover:translate-y-[-5px]">
+              <CardContent className="p-6 space-y-4">
+                <div className="h-12 w-12 bg-primary/10 rounded-lg flex items-center justify-center mb-4">
                   <svg
                     xmlns="http://www.w3.org/2000/svg"
-                    className="h-6 w-6 text-sky-500"
+                    className="h-6 w-6 text-primary"
                     fill="none"
                     viewBox="0 0 24 24"
                     stroke="currentColor"
@@ -141,18 +143,18 @@ export default function Home() {
                   Join discussions, share experiences, and learn from others in our community.
                 </p>
                 <Button asChild variant="outline" className="w-full">
-                  <Link href="/community">Join Community</Link>
+                  <Link href="/posts">Join Community</Link>
                 </Button>
               </CardContent>
             </Card>
 
             {/* Document Templates Card */}
-            <Card className="hover:shadow-lg transition-shadow">
-              <CardContent className="p-6">
-                <div className="h-12 w-12 bg-sky-100 rounded-lg flex items-center justify-center mb-4">
+            <Card className="hover:shadow-lg transition-shadow border-0 hover:translate-y-[-5px]">
+              <CardContent className="p-6 space-y-4">
+                <div className="h-12 w-12 bg-primary/10 rounded-lg flex items-center justify-center mb-4">
                   <svg
                     xmlns="http://www.w3.org/2000/svg"
-                    className="h-6 w-6 text-sky-500"
+                    className="h-6 w-6 text-primary"
                     fill="none"
                     viewBox="0 0 24 24"
                     stroke="currentColor"
@@ -176,12 +178,12 @@ export default function Home() {
             </Card>
 
             {/* Case Posting Card */}
-            <Card className="hover:shadow-lg transition-shadow">
-              <CardContent className="p-6">
-                <div className="h-12 w-12 bg-sky-100 rounded-lg flex items-center justify-center mb-4">
+            <Card className="hover:shadow-lg transition-shadow border-0 hover:translate-y-[-5px]">
+              <CardContent className="p-6 space-y-4">
+                <div className="h-12 w-12 bg-primary/10 rounded-lg flex items-center justify-center mb-4">
                   <svg
                     xmlns="http://www.w3.org/2000/svg"
-                    className="h-6 w-6 text-sky-500"
+                    className="h-6 w-6 text-primary"
                     fill="none"
                     viewBox="0 0 24 24"
                     stroke="currentColor"
@@ -201,6 +203,24 @@ export default function Home() {
                 </Button>
               </CardContent>
             </Card>
+          </div>
+        </div>
+      </section>
+
+      {/* CTA Section */}
+      <section className="w-full py-16 cawar-bg">
+        <div className="container mx-auto px-4 text-center text-white">
+          <h2 className="text-3xl md:text-4xl font-bold mb-6">Ready to Get Started?</h2>
+          <p className="text-lg md:text-xl mb-8 text-white/80 max-w-2xl mx-auto">
+            Join thousands of clients and lawyers already using our platform to simplify legal processes.
+          </p>
+          <div className="flex flex-wrap justify-center gap-4">
+            <Button asChild size="lg" className="bg-white text-primary hover:bg-white/90">
+              <Link href="/register">Sign Up Now</Link>
+            </Button>
+            <Button asChild variant="outline" size="lg" className="border-white text-white hover:bg-white/20">
+              <Link href="/login">Login</Link>
+            </Button>
           </div>
         </div>
       </section>

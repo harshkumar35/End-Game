@@ -21,6 +21,7 @@ export function Navbar() {
   const { supabase, user, isLoading } = useSupabase()
   const [isMenuOpen, setIsMenuOpen] = useState(false)
   const [isSigningOut, setIsSigningOut] = useState(false)
+  const [scrolled, setScrolled] = useState(false)
 
   const handleSignOut = async () => {
     if (isSigningOut) return
@@ -35,6 +36,22 @@ export function Navbar() {
       setIsSigningOut(false)
     }
   }
+
+  // Add scroll effect
+  useEffect(() => {
+    const handleScroll = () => {
+      if (window.scrollY > 10) {
+        setScrolled(true)
+      } else {
+        setScrolled(false)
+      }
+    }
+
+    window.addEventListener("scroll", handleScroll)
+    return () => {
+      window.removeEventListener("scroll", handleScroll)
+    }
+  }, [])
 
   // Add error boundary for the component
   useEffect(() => {
@@ -56,10 +73,14 @@ export function Navbar() {
   }, [])
 
   return (
-    <header className="sticky top-0 z-40 w-full border-b bg-background/80 backdrop-blur-md">
+    <header
+      className={`sticky top-0 z-40 w-full transition-all duration-300 ${
+        scrolled ? "glass backdrop-blur-md border-b border-white/10" : "bg-transparent"
+      }`}
+    >
       <div className="container flex h-16 items-center">
         <Link href="/" className="flex items-center space-x-2">
-          <span className="text-xl font-bold">LegalSathi</span>
+          <span className="text-xl font-bold animated-gradient-text">LegalSathi</span>
         </Link>
         <nav className="hidden md:flex items-center space-x-6 ml-6">
           <Link
@@ -68,8 +89,11 @@ export function Navbar() {
               pathname === "/" ? "text-primary" : "text-muted-foreground"
             }`}
           >
-            <Home size={14} />
-            Home
+            <Home size={14} className="animate-pulse-soft" />
+            <span className="relative overflow-hidden">
+              Home
+              <span className="absolute bottom-0 left-0 w-full h-0.5 bg-primary transform scale-x-0 transition-transform origin-left hover:scale-x-100"></span>
+            </span>
           </Link>
 
           <DropdownMenu>
@@ -77,37 +101,52 @@ export function Navbar() {
               <Button
                 variant="ghost"
                 size="sm"
-                className="h-auto py-1 px-2 text-sm font-medium transition-colors hover:text-primary flex items-center gap-1 text-muted-foreground"
+                className="h-auto py-1 px-2 text-sm font-medium transition-colors hover:text-primary flex items-center gap-1 text-muted-foreground group"
               >
-                <Briefcase size={14} />
-                Services
-                <ChevronDown size={14} />
+                <Briefcase size={14} className="group-hover:animate-pulse-soft" />
+                <span className="relative overflow-hidden">
+                  Services
+                  <span className="absolute bottom-0 left-0 w-full h-0.5 bg-primary transform scale-x-0 transition-transform origin-left group-hover:scale-x-100"></span>
+                </span>
+                <ChevronDown size={14} className="transition-transform group-hover:rotate-180" />
               </Button>
             </DropdownMenuTrigger>
-            <DropdownMenuContent align="start" className="w-48">
+            <DropdownMenuContent align="start" className="w-48 glass backdrop-blur-md animate-fade-in-down">
               <DropdownMenuGroup>
-                <DropdownMenuItem asChild>
-                  <Link href="/lawyers" className="flex items-center gap-2">
-                    <Users size={14} />
-                    <span>Find Lawyers</span>
+                <DropdownMenuItem asChild className="focus:bg-primary/10">
+                  <Link href="/lawyers" className="flex items-center gap-2 group">
+                    <Users size={14} className="group-hover:text-primary transition-colors" />
+                    <span className="relative overflow-hidden">
+                      Find Lawyers
+                      <span className="absolute bottom-0 left-0 w-full h-0.5 bg-primary transform scale-x-0 transition-transform origin-left group-hover:scale-x-100"></span>
+                    </span>
                   </Link>
                 </DropdownMenuItem>
-                <DropdownMenuItem asChild>
-                  <Link href="/ai-assistant" className="flex items-center gap-2">
-                    <Bot size={14} />
-                    <span>AI Assistant</span>
+                <DropdownMenuItem asChild className="focus:bg-primary/10">
+                  <Link href="/ai-assistant" className="flex items-center gap-2 group">
+                    <Bot size={14} className="group-hover:text-primary transition-colors" />
+                    <span className="relative overflow-hidden">
+                      AI Assistant
+                      <span className="absolute bottom-0 left-0 w-full h-0.5 bg-primary transform scale-x-0 transition-transform origin-left group-hover:scale-x-100"></span>
+                    </span>
                   </Link>
                 </DropdownMenuItem>
-                <DropdownMenuItem asChild>
-                  <Link href="/legal-news" className="flex items-center gap-2">
-                    <Newspaper size={14} />
-                    <span>Legal News</span>
+                <DropdownMenuItem asChild className="focus:bg-primary/10">
+                  <Link href="/legal-news" className="flex items-center gap-2 group">
+                    <Newspaper size={14} className="group-hover:text-primary transition-colors" />
+                    <span className="relative overflow-hidden">
+                      Legal News
+                      <span className="absolute bottom-0 left-0 w-full h-0.5 bg-primary transform scale-x-0 transition-transform origin-left group-hover:scale-x-100"></span>
+                    </span>
                   </Link>
                 </DropdownMenuItem>
-                <DropdownMenuItem asChild>
-                  <Link href="/posts" className="flex items-center gap-2">
-                    <MessageSquare size={14} />
-                    <span>Community</span>
+                <DropdownMenuItem asChild className="focus:bg-primary/10">
+                  <Link href="/posts" className="flex items-center gap-2 group">
+                    <MessageSquare size={14} className="group-hover:text-primary transition-colors" />
+                    <span className="relative overflow-hidden">
+                      Community
+                      <span className="absolute bottom-0 left-0 w-full h-0.5 bg-primary transform scale-x-0 transition-transform origin-left group-hover:scale-x-100"></span>
+                    </span>
                   </Link>
                 </DropdownMenuItem>
               </DropdownMenuGroup>
@@ -118,20 +157,26 @@ export function Navbar() {
             href="/posts"
             className={`text-sm font-medium transition-colors hover:text-primary flex items-center gap-1 ${
               pathname === "/posts" ? "text-primary" : "text-muted-foreground"
-            }`}
+            } group`}
           >
-            <MessageSquare size={14} />
-            Community
+            <MessageSquare size={14} className="group-hover:animate-pulse-soft" />
+            <span className="relative overflow-hidden">
+              Community
+              <span className="absolute bottom-0 left-0 w-full h-0.5 bg-primary transform scale-x-0 transition-transform origin-left group-hover:scale-x-100"></span>
+            </span>
           </Link>
 
           <Link
             href="/contact"
             className={`text-sm font-medium transition-colors hover:text-primary flex items-center gap-1 ${
               pathname === "/contact" ? "text-primary" : "text-muted-foreground"
-            }`}
+            } group`}
           >
-            <Phone size={14} />
-            Contact
+            <Phone size={14} className="group-hover:animate-pulse-soft" />
+            <span className="relative overflow-hidden">
+              Contact
+              <span className="absolute bottom-0 left-0 w-full h-0.5 bg-primary transform scale-x-0 transition-transform origin-left group-hover:scale-x-100"></span>
+            </span>
           </Link>
         </nav>
         <div className="flex-1" />
@@ -145,43 +190,65 @@ export function Navbar() {
           ) : user ? (
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <Button variant="ghost" className="flex items-center space-x-2">
-                  <User size={18} />
-                  <span>Account</span>
-                  <ChevronDown size={16} />
+                <Button variant="ghost" className="flex items-center space-x-2 group">
+                  <User size={18} className="group-hover:text-primary transition-colors" />
+                  <span className="relative overflow-hidden">
+                    Account
+                    <span className="absolute bottom-0 left-0 w-full h-0.5 bg-primary transform scale-x-0 transition-transform origin-left group-hover:scale-x-100"></span>
+                  </span>
+                  <ChevronDown size={16} className="transition-transform group-hover:rotate-180" />
                 </Button>
               </DropdownMenuTrigger>
-              <DropdownMenuContent align="end">
-                <DropdownMenuItem asChild>
-                  <Link href="/dashboard">Dashboard</Link>
+              <DropdownMenuContent align="end" className="glass backdrop-blur-md animate-fade-in-down">
+                <DropdownMenuItem asChild className="focus:bg-primary/10">
+                  <Link href="/dashboard" className="group">
+                    <span className="relative overflow-hidden">
+                      Dashboard
+                      <span className="absolute bottom-0 left-0 w-full h-0.5 bg-primary transform scale-x-0 transition-transform origin-left group-hover:scale-x-100"></span>
+                    </span>
+                  </Link>
                 </DropdownMenuItem>
-                <DropdownMenuItem asChild>
-                  <Link href="/profile">Profile</Link>
+                <DropdownMenuItem asChild className="focus:bg-primary/10">
+                  <Link href="/profile" className="group">
+                    <span className="relative overflow-hidden">
+                      Profile
+                      <span className="absolute bottom-0 left-0 w-full h-0.5 bg-primary transform scale-x-0 transition-transform origin-left group-hover:scale-x-100"></span>
+                    </span>
+                  </Link>
                 </DropdownMenuItem>
                 <DropdownMenuSeparator />
-                <DropdownMenuItem onClick={handleSignOut} disabled={isSigningOut}>
-                  {isSigningOut ? "Signing out..." : "Sign Out"}
+                <DropdownMenuItem onClick={handleSignOut} disabled={isSigningOut} className="focus:bg-primary/10 group">
+                  <span className="relative overflow-hidden">
+                    {isSigningOut ? "Signing out..." : "Sign Out"}
+                    <span className="absolute bottom-0 left-0 w-full h-0.5 bg-primary transform scale-x-0 transition-transform origin-left group-hover:scale-x-100"></span>
+                  </span>
                 </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>
           ) : (
             <div className="flex items-center space-x-2">
               <Link href="/login">
-                <Button variant="ghost">Sign In</Button>
+                <Button variant="ghost" className="relative overflow-hidden group">
+                  <span className="relative z-10">Sign In</span>
+                  <span className="absolute inset-0 bg-primary/10 transform scale-x-0 group-hover:scale-x-100 transition-transform origin-left"></span>
+                </Button>
               </Link>
               <Link href="/register">
-                <Button>Sign Up</Button>
+                <Button className="relative overflow-hidden group elemental-water">
+                  <span className="relative z-10">Sign Up</span>
+                  <span className="absolute inset-0 bg-white/10 transform scale-x-0 group-hover:scale-x-100 transition-transform origin-left"></span>
+                </Button>
               </Link>
             </div>
           )}
         </div>
         <button className="md:hidden ml-2" onClick={() => setIsMenuOpen(!isMenuOpen)}>
-          <Menu />
+          <Menu className="transition-transform hover:scale-110" />
           <span className="sr-only">Toggle menu</span>
         </button>
       </div>
       {isMenuOpen && (
-        <div className="md:hidden border-t p-4">
+        <div className="md:hidden glass backdrop-blur-md border-t border-white/10 p-4 animate-fade-in-down">
           <nav className="flex flex-col space-y-4">
             <Link
               href="/"
@@ -190,16 +257,16 @@ export function Navbar() {
               }`}
               onClick={() => setIsMenuOpen(false)}
             >
-              <Home size={16} />
+              <Home size={16} className="animate-pulse-soft" />
               Home
             </Link>
 
             <div className="space-y-2">
               <div className="text-sm font-medium flex items-center gap-2 text-muted-foreground">
-                <Briefcase size={16} />
+                <Briefcase size={16} className="animate-pulse-soft" />
                 Services
               </div>
-              <div className="pl-6 space-y-2 border-l border-muted">
+              <div className="pl-6 space-y-2 border-l border-white/10">
                 <Link
                   href="/lawyers"
                   className={`text-sm font-medium transition-colors hover:text-primary flex items-center gap-2 ${
@@ -324,7 +391,7 @@ export function Navbar() {
                       </Button>
                     </Link>
                     <Link href="/register" onClick={() => setIsMenuOpen(false)}>
-                      <Button className="w-full">Sign Up</Button>
+                      <Button className="w-full elemental-water">Sign Up</Button>
                     </Link>
                   </div>
                 )}

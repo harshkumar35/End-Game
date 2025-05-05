@@ -1,107 +1,139 @@
 "use client"
 
-import { useRef } from "react"
-import { Canvas, useFrame } from "@react-three/fiber"
-import { Environment, Text3D, Float, Sparkles, OrbitControls } from "@react-three/drei"
-import { useSpring, animated } from "@react-spring/three"
-import type * as THREE from "three"
+import { useEffect, useRef } from "react"
+import * as THREE from "three"
 
-function Model({ scale = 1, position = [0, 0, 0] }) {
-  const ref = useRef<THREE.Group>(null)
+export default function HeroScene() {
+  const containerRef = useRef<HTMLDivElement>(null)
 
-  useFrame((state) => {
-    if (ref.current) {
-      ref.current.rotation.y = Math.sin(state.clock.getElapsedTime() * 0.3) * 0.2
-    }
-  })
+  useEffect(() => {
+    if (!containerRef.current) return
 
-  return (
-    <Float speed={2} rotationIntensity={0.5} floatIntensity={0.5}>
-      <group ref={ref} position={position} scale={scale}>
-        <mesh castShadow receiveShadow>
-          <boxGeometry args={[1, 1, 1]} />
-          <meshStandardMaterial color="#0ea5e9" metalness={0.6} roughness={0.2} />
-        </mesh>
-      </group>
-    </Float>
-  )
-}
+    // Get container dimensions
+    const width = containerRef.current.clientWidth
+    const height = containerRef.current.clientHeight
 
-function FloatingText() {
-  const [springs, api] = useSpring(() => ({
-    position: [0, 0, 0],
-    config: { mass: 2, tension: 50, friction: 15 },
-  }))
+    // Create scene
+    const scene = new THREE.Scene()
+    scene.background = new THREE.Color(0x581c87) // Deep purple background to match our theme
 
-  useFrame((state) => {
-    api.start({
-      position: [0, Math.sin(state.clock.getElapsedTime() * 0.5) * 0.2, 0],
+    // Create camera
+    const camera = new THREE.PerspectiveCamera(60, width / height, 0.1, 1000)
+    camera.position.z = 5
+
+    // Create renderer
+    const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true })
+    renderer.setSize(width, height)
+    renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2))
+    containerRef.current.innerHTML = ""
+    containerRef.current.appendChild(renderer.domElement)
+
+    // Create light
+    const light = new THREE.DirectionalLight(0xffffff, 1)
+    light.position.set(1, 1, 1)
+    scene.add(light)
+
+    const ambientLight = new THREE.AmbientLight(0xffffff, 0.5)
+    scene.add(ambientLight)
+
+    // Create materials
+    const goldMaterial = new THREE.MeshStandardMaterial({
+      color: 0xffd700,
+      metalness: 0.9,
+      roughness: 0.1,
     })
-  })
 
-  return (
-    <animated.group position={springs.position as any}>
-      <Float speed={1.5} rotationIntensity={0.2} floatIntensity={0.5}>
-        <Text3D
-          font="/fonts/Inter_Bold.json"
-          size={0.5}
-          height={0.1}
-          curveSegments={12}
-          position={[-2, 0, 0]}
-          bevelEnabled
-          bevelThickness={0.01}
-          bevelSize={0.01}
-          bevelSegments={5}
-        >
-          LegalSathi
-          <meshStandardMaterial color="#0ea5e9" metalness={0.8} roughness={0.2} />
-        </Text3D>
-      </Float>
-    </animated.group>
-  )
-}
+    const blackMaterial = new THREE.MeshStandardMaterial({
+      color: 0x222222,
+      metalness: 0.7,
+      roughness: 0.2,
+    })
 
-function ScaleModel() {
-  const ref = useRef<THREE.Mesh>(null)
+    // Create the scales of justice
+    const baseGeometry = new THREE.BoxGeometry(1, 0.1, 0.5)
+    const base = new THREE.Mesh(baseGeometry, goldMaterial)
+    base.position.y = -1
+    scene.add(base)
 
-  useFrame((state) => {
-    if (ref.current) {
-      ref.current.rotation.y += 0.01
-      ref.current.rotation.x = Math.sin(state.clock.getElapsedTime()) * 0.2
+    // Create the vertical pole
+    const poleGeometry = new THREE.CylinderGeometry(0.05, 0.05, 2, 32)
+    const pole = new THREE.Mesh(poleGeometry, goldMaterial)
+    pole.position.y = 0
+    base.add(pole)
+
+    // Create the horizontal beam
+    const beamGeometry = new THREE.BoxGeometry(3, 0.1, 0.1)
+    const beam = new THREE.Mesh(beamGeometry, goldMaterial)
+    beam.position.y = 1
+    pole.add(beam)
+
+    // Create the left scale pan
+    const panGeometry = new THREE.CylinderGeometry(0.5, 0.5, 0.05, 32)
+    const leftPan = new THREE.Mesh(panGeometry, blackMaterial)
+    leftPan.position.set(-1.2, -0.5, 0)
+    beam.add(leftPan)
+
+    // Create the right scale pan
+    const rightPan = new THREE.Mesh(panGeometry, blackMaterial)
+    rightPan.position.set(1.2, -0.3, 0)
+    beam.add(rightPan)
+
+    // Create strings connecting pans to the beam
+    const leftStringGeometry = new THREE.CylinderGeometry(0.01, 0.01, 1, 8)
+    const leftString = new THREE.Mesh(leftStringGeometry, blackMaterial)
+    leftString.position.set(-1.2, 0.3, 0)
+    beam.add(leftString)
+
+    const rightStringGeometry = new THREE.CylinderGeometry(0.01, 0.01, 0.8, 8)
+    const rightString = new THREE.Mesh(rightStringGeometry, blackMaterial)
+    rightString.position.set(1.2, 0.4, 0)
+    beam.add(rightString)
+
+    // Create a book for the right pan
+    const bookGeometry = new THREE.BoxGeometry(0.7, 0.1, 0.5)
+    const book = new THREE.Mesh(bookGeometry, new THREE.MeshStandardMaterial({ color: 0x8844aa }))
+    book.position.y = 0.1
+    rightPan.add(book)
+
+    // Create animation
+    let animationFrame: number
+    const animate = () => {
+      animationFrame = requestAnimationFrame(animate)
+
+      // Rotate the scales slightly to give a floating effect
+      const time = Date.now() * 0.001
+      beam.rotation.z = Math.sin(time) * 0.1
+      leftPan.position.y = -0.5 - Math.sin(time) * 0.1
+      rightPan.position.y = -0.3 + Math.sin(time) * 0.1
+
+      // Rotate the entire scene slightly based on mouse movement or time
+      scene.rotation.y = Math.sin(time * 0.3) * 0.2
+
+      renderer.render(scene, camera)
     }
-  })
 
-  return (
-    <Float speed={3} rotationIntensity={1} floatIntensity={1}>
-      <mesh ref={ref} position={[2, 0, 0]}>
-        <cylinderGeometry args={[0.5, 0.5, 1, 32]} />
-        <meshStandardMaterial color="#0ea5e9" metalness={0.6} roughness={0.2} />
-      </mesh>
-    </Float>
-  )
+    animate()
+
+    // Handle resize
+    const handleResize = () => {
+      if (!containerRef.current) return
+      const width = containerRef.current.clientWidth
+      const height = containerRef.current.clientHeight
+      camera.aspect = width / height
+      camera.updateProjectionMatrix()
+      renderer.setSize(width, height)
+    }
+
+    window.addEventListener("resize", handleResize)
+
+    // Cleanup
+    return () => {
+      window.removeEventListener("resize", handleResize)
+      cancelAnimationFrame(animationFrame)
+      scene.clear()
+      renderer.dispose()
+    }
+  }, [])
+
+  return <div ref={containerRef} className="w-full h-full"></div>
 }
-
-// Change to default export
-const HeroScene = () => {
-  return (
-    <div className="w-full h-full">
-      <Canvas shadows camera={{ position: [0, 0, 5], fov: 50 }}>
-        <ambientLight intensity={0.5} />
-        <spotLight position={[10, 10, 10]} angle={0.15} penumbra={1} castShadow />
-        <pointLight position={[-10, -10, -10]} />
-
-        <Model scale={1} position={[-2, -1, 0]} />
-        <ScaleModel />
-        <FloatingText />
-
-        <Sparkles count={100} scale={10} size={1} speed={0.3} color="#0ea5e9" />
-
-        <Environment preset="city" />
-        <OrbitControls enableZoom={false} enablePan={false} />
-      </Canvas>
-    </div>
-  )
-}
-
-// Export both as default and named export to ensure compatibility
-export default HeroScene
