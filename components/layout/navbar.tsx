@@ -57,11 +57,16 @@ export function Navbar() {
   useEffect(() => {
     const originalError = console.error
     console.error = (...args) => {
-      // Check if this is an auth-related error
+      // Check if this is an auth-related error or Botpress error
       const errorString = args.join(" ")
-      if (errorString.includes("auth") || errorString.includes("supabase")) {
+      if (
+        errorString.includes("auth") ||
+        errorString.includes("supabase") ||
+        errorString.includes("Botpress") ||
+        errorString.includes("botpress")
+      ) {
         // Log but don't crash the component
-        originalError("Auth error caught by Navbar error boundary:", ...args)
+        originalError("Error caught by Navbar error boundary:", ...args)
       } else {
         originalError(...args)
       }

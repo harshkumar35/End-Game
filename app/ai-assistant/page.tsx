@@ -7,12 +7,30 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { AlertCircle, CheckCircle, Info } from "lucide-react"
 import Link from "next/link"
 import { useSupabaseClient, useUser } from "@/lib/supabase/provider"
+// Import the BotpressFallback component
+import { BotpressFallback } from "@/components/chat/botpress-fallback"
 
 export default function AIAssistantPage() {
   const [freeSessionUsed, setFreeSessionUsed] = useState(false)
   const [showIframe, setShowIframe] = useState(false)
   const supabaseClient = useSupabaseClient()
   const user = useUser()
+  const [botpressLoaded, setBotpressLoaded] = useState(false)
+  const [botpressError, setBotpressError] = useState(false)
+
+  // Add an effect to check if Botpress loads
+  useEffect(() => {
+    // Check if Botpress is loaded after a timeout
+    const timer = setTimeout(() => {
+      if (window.botpressWebChat) {
+        setBotpressLoaded(true)
+      } else {
+        setBotpressError(true)
+      }
+    }, 5000)
+
+    return () => clearTimeout(timer)
+  }, [])
 
   useEffect(() => {
     // Check if the user has used their free session
@@ -122,6 +140,7 @@ export default function AIAssistantPage() {
               <TabsTrigger value="about">About</TabsTrigger>
             </TabsList>
             <TabsContent value="chat">
+              {botpressError && <BotpressFallback />}
               <div className="bg-white dark:bg-gray-950 rounded-lg shadow-lg overflow-hidden border border-gray-200 dark:border-gray-800 h-[600px]">
                 <iframe
                   src="https://www.yeschat.ai/i/gpts-2OToSki9P3--AI-Lawyer"
