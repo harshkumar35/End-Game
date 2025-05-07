@@ -1,76 +1,77 @@
 "use client"
 
 import { useEffect, useRef } from "react"
-import { gsap } from "gsap"
 
 export function FluidBackground() {
   const containerRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
-    if (!containerRef.current) return
+    // Check if we're in the browser
+    if (typeof window === "undefined") return
 
-    // Create blobs
-    const container = containerRef.current
-    const colors = [
-      "rgba(0, 114, 245, 0.2)", // Blue
-      "rgba(0, 194, 255, 0.15)", // Cyan
-      "rgba(142, 51, 255, 0.1)", // Purple
-      "rgba(255, 45, 85, 0.08)", // Pink
-    ]
-
-    // Clear any existing blobs
-    while (container.firstChild) {
-      container.removeChild(container.firstChild)
+    // Check if GSAP is available
+    if (typeof window.gsap === "undefined") {
+      console.warn("GSAP not found, fluid background animation disabled")
+      return
     }
 
-    // Create new blobs
-    for (let i = 0; i < 4; i++) {
-      const blob = document.createElement("div")
-      blob.className = "fluid-blob"
-      blob.style.backgroundColor = colors[i % colors.length]
-      blob.style.width = `${Math.random() * 30 + 20}vw`
-      blob.style.height = blob.style.width
-      blob.style.left = `${Math.random() * 80}%`
-      blob.style.top = `${Math.random() * 80}%`
-      blob.style.opacity = "0"
-      container.appendChild(blob)
+    try {
+      const { gsap } = window
+      const container = containerRef.current
+      if (!container) return
 
-      // Animate each blob with GSAP
-      gsap.to(blob, {
-        opacity: 0.8,
-        duration: 2,
-        delay: i * 0.3,
-        ease: "power2.inOut",
+      // Create blobs
+      const blobs = Array.from({ length: 3 }).map((_, i) => {
+        const blob = document.createElement("div")
+        blob.className = `absolute rounded-full blur-3xl opacity-20 ${
+          i === 0 ? "bg-blue-500" : i === 1 ? "bg-indigo-500" : "bg-purple-500"
+        }`
+        container.appendChild(blob)
+        return blob
       })
 
-      // Create random movement animation
-      gsap.to(blob, {
-        x: `random(-30, 30)`,
-        y: `random(-30, 30)`,
-        scale: `random(0.8, 1.2)`,
-        duration: `random(20, 40)`,
-        ease: "sine.inOut",
-        repeat: -1,
-        yoyo: true,
-        delay: i,
+      // Set initial positions and sizes
+      blobs.forEach((blob, i) => {
+        const size = 300 + Math.random() * 300
+        gsap.set(blob, {
+          width: size,
+          height: size,
+          x: Math.random() * window.innerWidth,
+          y: Math.random() * window.innerHeight,
+        })
       })
 
-      // Create pulsing effect
-      gsap.to(blob, {
-        opacity: 0.4,
-        duration: `random(4, 7)`,
-        ease: "sine.inOut",
-        repeat: -1,
-        yoyo: true,
-        delay: i * 0.5,
+      // Animate blobs
+      blobs.forEach((blob, i) => {
+        gsap.to(blob, {
+          x: `random(0, ${window.innerWidth})`,
+          y: `random(0, ${window.innerHeight})`,
+          duration: 20 + i * 5,
+          ease: "sine.inOut",
+          repeat: -1,
+          yoyo: true,
+        })
       })
-    }
 
-    // Cleanup
-    return () => {
-      gsap.killTweensOf(container.children)
+      // Cleanup
+      return () => {
+        blobs.forEach((blob) => {
+          if (blob.parentNode) {
+            blob.parentNode.removeChild(blob)
+          }
+        })
+      }
+    } catch (error) {
+      console.error("Error in fluid background:", error)
     }
   }, [])
 
-  return <div ref={containerRef} className="fluid-bg" />
+  return <div ref={containerRef} className="fixed inset-0 overflow-hidden pointer-events-none z-0" aria-hidden="true" />
+}
+
+// Add TypeScript interface for the global window object
+declare global {
+  interface Window {
+    gsap?: any
+  }
 }

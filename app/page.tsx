@@ -1,48 +1,50 @@
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
-import { FluidBackground } from "@/components/ui/fluid-background"
+import { AiSearchBar } from "@/components/hero/ai-search-bar"
 
 export default function Home() {
   return (
     <>
-      <FluidBackground />
-
       <section className="relative pt-20 pb-16 md:pt-32 md:pb-24 overflow-hidden">
-        <div className="halo-container text-center relative z-10">
-          {/* Hero glow effects */}
-          <div className="halo-glow bg-halo-blue w-[500px] h-[500px] top-[-250px] left-[calc(50%-250px)]"></div>
-
+        <div className="container mx-auto px-4 text-center relative z-10">
           {/* Main heading with animation */}
-          <h1 className="halo-heading animate-fade-in">
-            LegalSathi<span className="text-halo-blue">.</span>
+          <h1 className="text-5xl md:text-7xl font-bold mb-6 bg-clip-text text-transparent bg-gradient-to-r from-blue-400 to-purple-600">
+            LegalSathi<span className="text-primary">.</span>
           </h1>
 
-          <p className="halo-subheading mt-6 animate-fade-up">
+          <p className="text-xl md:text-2xl text-muted-foreground max-w-2xl mx-auto mb-10">
             We connect you with the best legal professionals for your needs.
           </p>
 
-          <div className="flex flex-wrap justify-center gap-4 mt-10">
+          {/* AI Search Bar */}
+          <AiSearchBar />
+
+          <div className="flex flex-wrap justify-center gap-4 mt-16">
             <Link href="/lawyers">
-              <Button className="halo-button halo-button-primary">Find Lawyers</Button>
+              <Button size="lg" className="bg-primary hover:bg-primary/90">
+                Find Lawyers
+              </Button>
             </Link>
             <Link href="/contact">
-              <Button className="halo-button">Contact Us</Button>
+              <Button size="lg" variant="outline">
+                Contact Us
+              </Button>
             </Link>
           </div>
         </div>
       </section>
 
       <section className="py-16 md:py-24">
-        <div className="halo-container">
+        <div className="container mx-auto px-4">
           <h2 className="text-3xl md:text-4xl font-bold text-center mb-12">Our Services</h2>
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
             {services.map((service, index) => (
               <div
                 key={index}
-                className="bg-card border border-white/5 rounded-lg p-6 transition-all duration-300 hover:border-white/20 hover:translate-y-[-4px]"
+                className="bg-card border border-border rounded-lg p-6 transition-all duration-300 hover:border-primary/20 hover:translate-y-[-4px]"
               >
-                <div className="w-12 h-12 rounded-full bg-primary/20 flex items-center justify-center mb-4">
+                <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center mb-4">
                   {service.icon}
                 </div>
                 <h3 className="text-xl font-semibold mb-2">{service.title}</h3>
@@ -53,8 +55,8 @@ export default function Home() {
         </div>
       </section>
 
-      <section className="py-16 md:py-24 bg-card">
-        <div className="halo-container">
+      <section className="py-16 md:py-24 bg-muted/30">
+        <div className="container mx-auto px-4">
           <h2 className="text-3xl md:text-4xl font-bold text-center mb-12">Why Choose Us</h2>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-12">

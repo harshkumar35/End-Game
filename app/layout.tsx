@@ -1,30 +1,20 @@
 import type React from "react"
-import type { Metadata, Viewport } from "next"
+import type { Metadata } from "next"
 import { Inter } from "next/font/google"
 import "./globals.css"
 import { ThemeProvider } from "@/components/theme-provider"
-import { Toaster } from "@/components/ui/toaster"
-import { SupabaseProvider } from "@/lib/supabase/provider"
 import { Navbar } from "@/components/layout/navbar"
 import { Footer } from "@/components/layout/footer"
-import { FluidBackground } from "@/components/ui/fluid-background"
-import Script from "next/script"
+import { BotpressChat } from "@/components/chat/botpress-chat"
+import { BotpressProvider } from "@/components/chat/botpress-provider"
+import { SupabaseProvider } from "@/lib/supabase/provider"
 
-const inter = Inter({ subsets: ["latin"], variable: "--font-sans" })
+const inter = Inter({ subsets: ["latin"] })
 
 export const metadata: Metadata = {
-  title: "LegalSathi - Legal Services Platform",
-  description: "Connect with lawyers, get legal advice, and access legal resources",
+  title: "LegalSathi - Connect with Legal Professionals",
+  description: "Find and connect with the best legal professionals for your needs.",
     generator: 'v0.dev'
-}
-
-export const viewport: Viewport = {
-  themeColor: [
-    { media: "(prefers-color-scheme: light)", color: "white" },
-    { media: "(prefers-color-scheme: dark)", color: "black" },
-  ],
-  width: "device-width",
-  initialScale: 1,
 }
 
 export default function RootLayout({
@@ -35,32 +25,37 @@ export default function RootLayout({
   return (
     <html lang="en" suppressHydrationWarning>
       <head>
-        <Script
-          id="botpress-webchat-script"
-          src="https://cdn.botpress.cloud/webchat/v2.4/inject.js"
-          strategy="afterInteractive"
-        />
-        <Script
-          id="botpress-config-script"
-          src="https://files.bpcontent.cloud/2025/05/04/06/20250504065744-37MIVWKZ.js"
-          strategy="afterInteractive"
-          onError={(e) => {
-            console.error("Error loading Botpress script:", e)
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `
+              window.botpressWebChat = {
+                init: {
+                  botId: 'c6f2a8a9-c2c3-4c3d-9d9a-2c3d4c5d6e7f',
+                  hostUrl: 'https://cdn.botpress.cloud/webchat/v1',
+                  messagingUrl: 'https://messaging.botpress.cloud',
+                  clientId: 'c6f2a8a9-c2c3-4c3d-9d9a-2c3d4c5d6e7f',
+                  botName: 'LegalSathi Assistant',
+                  stylesheet: 'https://cdn.botpress.cloud/webchat/v1/standard.css',
+                  useSessionStorage: true,
+                  enableConversationDeletion: true
+                }
+              };
+            `,
           }}
         />
       </head>
-      <body className={`font-sans ${inter.variable}`}>
-        <ThemeProvider attribute="class" defaultTheme="dark" enableSystem>
+      <body className={inter.className}>
+        <ThemeProvider attribute="class" defaultTheme="dark" enableSystem disableTransitionOnChange>
           <SupabaseProvider>
-            <FluidBackground />
-            <div className="relative flex min-h-screen flex-col">
+            <BotpressProvider>
               <Navbar />
-              <main className="flex-1">{children}</main>
+              <main className="min-h-screen">{children}</main>
               <Footer />
-            </div>
-            <Toaster />
+              <BotpressChat />
+            </BotpressProvider>
           </SupabaseProvider>
         </ThemeProvider>
+        <script src="https://cdn.botpress.cloud/webchat/v1/inject.js" defer></script>
       </body>
     </html>
   )

@@ -4,65 +4,79 @@
 
 @layer base {
   :root {
-    --background: 0 0% 3%;
-    --foreground: 0 0% 98%;
+    --background: 222.2 84% 4.9%;
+    --foreground: 210 40% 98%;
 
-    --card: 0 0% 5%;
-    --card-foreground: 0 0% 98%;
+    --card: 222.2 84% 6.9%;
+    --card-foreground: 210 40% 98%;
 
-    --popover: 0 0% 5%;
-    --popover-foreground: 0 0% 98%;
+    --popover: 222.2 84% 4.9%;
+    --popover-foreground: 210 40% 98%;
 
-    --primary: 214 100% 48%;
-    --primary-foreground: 0 0% 98%;
+    --primary: 217.2 91.2% 59.8%;
+    --primary-foreground: 222.2 47.4% 11.2%;
+
+    --secondary: 217.2 32.6% 17.5%;
+    --secondary-foreground: 210 40% 98%;
+
+    --muted: 217.2 32.6% 17.5%;
+    --muted-foreground: 215 20.2% 65.1%;
+
+    --accent: 217.2 32.6% 17.5%;
+    --accent-foreground: 210 40% 98%;
+
+    --destructive: 0 62.8% 30.6%;
+    --destructive-foreground: 210 40% 98%;
+
+    --border: 217.2 32.6% 17.5%;
+    --input: 217.2 32.6% 17.5%;
+    --ring: 224.3 76.3% 48%;
+
+    --radius: 0.5rem;
+
+    --chart-1: 217.2 91.2% 59.8%;
+    --chart-2: 262.1 83.3% 57.8%;
+    --chart-3: 316.6 73.3% 52.5%;
+    --chart-4: 175.4 84.8% 39.8%;
+    --chart-5: 20.5 90.2% 48.2%;
+  }
+
+  .light {
+    --background: 0 0% 100%;
+    --foreground: 222.2 84% 4.9%;
+
+    --card: 0 0% 100%;
+    --card-foreground: 222.2 84% 4.9%;
+
+    --popover: 0 0% 100%;
+    --popover-foreground: 222.2 84% 4.9%;
+
+    --primary: 221.2 83.2% 53.3%;
+    --primary-foreground: 210 40% 98%;
 
     --secondary: 210 40% 96.1%;
     --secondary-foreground: 222.2 47.4% 11.2%;
 
-    --muted: 0 0% 15%;
-    --muted-foreground: 0 0% 70%;
+    --muted: 210 40% 96.1%;
+    --muted-foreground: 215.4 16.3% 46.9%;
 
-    --accent: 214 100% 48%;
-    --accent-foreground: 0 0% 98%;
+    --accent: 210 40% 96.1%;
+    --accent-foreground: 222.2 47.4% 11.2%;
 
     --destructive: 0 84.2% 60.2%;
-    --destructive-foreground: 0 0% 98%;
+    --destructive-foreground: 210 40% 98%;
 
-    --border: 0 0% 15%;
-    --input: 0 0% 15%;
-    --ring: 214 100% 48%;
+    --border: 214.3 31.8% 91.4%;
+    --input: 214.3 31.8% 91.4%;
+    --ring: 221.2 83.2% 53.3%;
 
     --radius: 0.5rem;
-  }
 
-  .light {
-    --background: 0 0% 98%;
-    --foreground: 0 0% 3%;
-
-    --card: 0 0% 100%;
-    --card-foreground: 0 0% 3%;
-
-    --popover: 0 0% 100%;
-    --popover-foreground: 0 0% 3%;
-
-    --primary: 214 100% 48%;
-    --primary-foreground: 0 0% 98%;
-
-    --secondary: 0 0% 93%;
-    --secondary-foreground: 0 0% 9%;
-
-    --muted: 0 0% 93%;
-    --muted-foreground: 0 0% 45%;
-
-    --accent: 214 100% 48%;
-    --accent-foreground: 0 0% 98%;
-
-    --destructive: 0 84.2% 60.2%;
-    --destructive-foreground: 0 0% 98%;
-
-    --border: 0 0% 89.8%;
-    --input: 0 0% 89.8%;
-    --ring: 214 100% 48%;
+    --chart-1: 221.2 83.2% 53.3%;
+    --chart-2: 262.1 83.3% 57.8%;
+    --chart-3: 316.6 73.3% 52.5%;
+    --chart-4: 175.4 84.8% 39.8%;
+    --chart-5: 20.5 90.2% 48.2%;
   }
 }
 
@@ -72,16 +86,12 @@
   }
   body {
     @apply bg-background text-foreground;
-    font-feature-settings: "rlig" 1, "calt" 1;
   }
 }
 
 @layer components {
   .halo-glow {
-    @apply absolute;
-    @apply rounded-full;
-    @apply blur-[100px];
-    @apply opacity-50;
+    @apply absolute rounded-full opacity-20 blur-[100px];
   }
 
   .halo-nav-link {
@@ -98,76 +108,36 @@
   }
 
   .halo-button {
-    @apply inline-flex;
-    @apply items-center;
-    @apply justify-center;
-    @apply rounded-md;
-    @apply text-sm;
-    @apply font-medium;
-    @apply transition-colors;
-    @apply focus-visible:outline-none;
-    @apply focus-visible:ring-1;
-    @apply focus-visible:ring-ring;
-    @apply disabled:pointer-events-none;
-    @apply disabled:opacity-50;
-    @apply bg-halo-dark;
-    @apply hover:bg-halo-darker;
-    @apply text-foreground;
-    @apply h-9;
-    @apply px-4;
-    @apply py-2;
-    @apply border;
-    @apply border-border/40;
+    @apply px-6 py-3 rounded-full transition-all duration-300 border border-white/10 hover:border-white/20 bg-secondary hover:bg-secondary/80;
   }
 
   .halo-button-primary {
-    @apply bg-primary;
-    @apply hover:bg-primary/90;
-    @apply text-primary-foreground;
-    @apply border-primary/40;
+    @apply bg-primary text-primary-foreground hover:bg-primary/90;
   }
 
   .halo-container {
-    @apply mx-auto;
-    @apply px-4;
-    @apply sm:px-6;
-    @apply lg:px-8;
-    @apply max-w-7xl;
+    @apply container px-4 mx-auto max-w-7xl;
   }
 
   .halo-heading {
-    @apply text-4xl;
-    @apply sm:text-5xl;
-    @apply md:text-6xl;
-    @apply lg:text-7xl;
-    @apply font-bold;
-    @apply tracking-tight;
+    @apply text-4xl md:text-6xl lg:text-7xl font-bold tracking-tight;
+    background: linear-gradient(to right, #fff, #a3b9ff);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
   }
 
   .halo-subheading {
-    @apply text-xl;
-    @apply text-muted-foreground;
-    @apply max-w-3xl;
-    @apply mx-auto;
+    @apply text-lg md:text-xl text-muted-foreground max-w-2xl mx-auto;
   }
 }
 
 /* Fluid background */
 .fluid-bg {
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  z-index: -1;
-  background-color: hsl(var(--background));
-  overflow: hidden;
+  @apply fixed inset-0 w-full h-full pointer-events-none z-0;
 }
 
 .fluid-blob {
-  position: absolute;
-  border-radius: 50%;
-  filter: blur(60px);
+  @apply absolute rounded-full filter blur-[80px];
 }
 
 /* Scrollbar styling */
@@ -197,4 +167,65 @@ html {
 /* Transition for theme switching */
 body {
   transition: background-color 0.3s ease, color 0.3s ease;
+}
+
+/* Animations */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes fadeUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-fade-in {
+  animation: fadeIn 1s ease-out forwards;
+}
+
+.animate-fade-up {
+  animation: fadeUp 1s ease-out forwards;
+  animation-delay: 0.3s;
+  opacity: 0;
+}
+
+/* Universe background stars */
+@keyframes twinkle {
+  0% {
+    opacity: 0.2;
+  }
+  50% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0.2;
+  }
+}
+
+.star {
+  @apply absolute rounded-full bg-white;
+  animation: twinkle 4s infinite ease-in-out;
+}
+
+.star-small {
+  @apply w-0.5 h-0.5;
+}
+
+.star-medium {
+  @apply w-1 h-1;
+}
+
+.star-large {
+  @apply w-1.5 h-1.5;
 }
