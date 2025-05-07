@@ -1,7 +1,6 @@
 "use client"
 
 import { useRef } from "react"
-
 import Link from "next/link"
 import { useState, useEffect } from "react"
 import { usePathname } from "next/navigation"
@@ -15,7 +14,7 @@ import {
   DropdownMenuTrigger,
   DropdownMenuSeparator,
 } from "@/components/ui/dropdown-menu"
-import { Menu, User, ChevronDown, X } from "lucide-react"
+import { Menu, User, ChevronDown, X, Bot, Newspaper, Users, MessageSquare, FileText, Scale } from "lucide-react"
 import { gsap } from "gsap"
 
 export function Navbar() {
@@ -99,24 +98,65 @@ export function Navbar() {
         scrolled ? "backdrop-blur-md border-b border-white/5" : ""
       }`}
     >
-      <div className="halo-container flex h-16 items-center justify-between">
+      <div className="container mx-auto px-4 flex h-16 items-center justify-between">
         <Link href="/" className="flex items-center space-x-2">
           <span className="text-xl font-bold text-foreground">LegalSathi</span>
         </Link>
 
         {/* Desktop Navigation */}
         <nav className="hidden md:flex items-center space-x-8">
-          <Link href="/services" className={`halo-nav-link ${pathname === "/services" ? "halo-nav-link-active" : ""}`}>
-            services
-          </Link>
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <button
+                className={`halo-nav-link flex items-center gap-1 ${pathname.startsWith("/services") || pathname === "/ai-assistant" || pathname === "/lawyers" || pathname === "/legal-news" ? "halo-nav-link-active" : ""}`}
+              >
+                services <ChevronDown size={14} />
+              </button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent
+              align="center"
+              className="bg-background/95 backdrop-blur-sm border border-white/10 w-56"
+            >
+              <DropdownMenuItem asChild>
+                <Link href="/ai-assistant" className="flex items-center gap-2">
+                  <Bot size={14} />
+                  <span>AI Assistant</span>
+                </Link>
+              </DropdownMenuItem>
+              <DropdownMenuItem asChild>
+                <Link href="/lawyers" className="flex items-center gap-2">
+                  <Users size={14} />
+                  <span>Find Lawyers</span>
+                </Link>
+              </DropdownMenuItem>
+              <DropdownMenuItem asChild>
+                <Link href="/legal-news" className="flex items-center gap-2">
+                  <Newspaper size={14} />
+                  <span>Legal News</span>
+                </Link>
+              </DropdownMenuItem>
+              <DropdownMenuItem asChild>
+                <Link href="/posts" className="flex items-center gap-2">
+                  <MessageSquare size={14} />
+                  <span>Community</span>
+                </Link>
+              </DropdownMenuItem>
+              <DropdownMenuItem asChild>
+                <Link href="/dashboard/document-generator" className="flex items-center gap-2">
+                  <FileText size={14} />
+                  <span>Document Generator</span>
+                </Link>
+              </DropdownMenuItem>
+              <DropdownMenuItem asChild>
+                <Link href="/dashboard/cases" className="flex items-center gap-2">
+                  <Scale size={14} />
+                  <span>Case Management</span>
+                </Link>
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
           <Link href="/lawyers" className={`halo-nav-link ${pathname === "/lawyers" ? "halo-nav-link-active" : ""}`}>
             lawyers
-          </Link>
-          <Link
-            href="/legal-news"
-            className={`halo-nav-link ${pathname === "/legal-news" ? "halo-nav-link-active" : ""}`}
-          >
-            news
           </Link>
           <Link href="/posts" className={`halo-nav-link ${pathname === "/posts" ? "halo-nav-link-active" : ""}`}>
             community
@@ -155,7 +195,7 @@ export function Navbar() {
             </DropdownMenu>
           ) : (
             <Link href="/login">
-              <Button className="halo-button">Get started</Button>
+              <Button className="bg-primary hover:bg-primary/90">Get started</Button>
             </Link>
           )}
         </div>
@@ -173,16 +213,56 @@ export function Navbar() {
       {/* Mobile menu */}
       {isMenuOpen && (
         <div ref={mobileMenuRef} className="md:hidden fixed inset-0 z-50 bg-background pt-16">
-          <div className="halo-container py-8">
+          <div className="container mx-auto px-4 py-8">
             <nav className="flex flex-col space-y-6">
-              <Link href="/services" className="text-lg font-medium" onClick={() => setIsMenuOpen(false)}>
-                Services
-              </Link>
+              <div>
+                <h3 className="text-sm font-medium text-muted-foreground mb-3">Services</h3>
+                <div className="space-y-3 pl-3">
+                  <Link
+                    href="/ai-assistant"
+                    className="flex items-center gap-2 text-base"
+                    onClick={() => setIsMenuOpen(false)}
+                  >
+                    <Bot size={16} />
+                    <span>AI Assistant</span>
+                  </Link>
+                  <Link
+                    href="/lawyers"
+                    className="flex items-center gap-2 text-base"
+                    onClick={() => setIsMenuOpen(false)}
+                  >
+                    <Users size={16} />
+                    <span>Find Lawyers</span>
+                  </Link>
+                  <Link
+                    href="/legal-news"
+                    className="flex items-center gap-2 text-base"
+                    onClick={() => setIsMenuOpen(false)}
+                  >
+                    <Newspaper size={16} />
+                    <span>Legal News</span>
+                  </Link>
+                  <Link
+                    href="/posts"
+                    className="flex items-center gap-2 text-base"
+                    onClick={() => setIsMenuOpen(false)}
+                  >
+                    <MessageSquare size={16} />
+                    <span>Community</span>
+                  </Link>
+                  <Link
+                    href="/dashboard/document-generator"
+                    className="flex items-center gap-2 text-base"
+                    onClick={() => setIsMenuOpen(false)}
+                  >
+                    <FileText size={16} />
+                    <span>Document Generator</span>
+                  </Link>
+                </div>
+              </div>
+
               <Link href="/lawyers" className="text-lg font-medium" onClick={() => setIsMenuOpen(false)}>
                 Lawyers
-              </Link>
-              <Link href="/legal-news" className="text-lg font-medium" onClick={() => setIsMenuOpen(false)}>
-                News
               </Link>
               <Link href="/posts" className="text-lg font-medium" onClick={() => setIsMenuOpen(false)}>
                 Community
