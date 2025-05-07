@@ -14,7 +14,19 @@ import {
   DropdownMenuTrigger,
   DropdownMenuSeparator,
 } from "@/components/ui/dropdown-menu"
-import { Menu, User, ChevronDown, X, Bot, Newspaper, Users, MessageSquare, FileText, Scale } from "lucide-react"
+import {
+  Menu,
+  User,
+  ChevronDown,
+  X,
+  Bot,
+  Newspaper,
+  Users,
+  MessageCircle,
+  FileText,
+  Scale,
+  MessageSquare,
+} from "lucide-react"
 import { gsap } from "gsap"
 
 export function Navbar() {
@@ -94,7 +106,7 @@ export function Navbar() {
 
   return (
     <header
-      className={`sticky top-0 z-40 w-full transition-all duration-300 ${
+      className={`sticky top-0 z-50 w-full transition-all duration-300 ${
         scrolled ? "backdrop-blur-md border-b border-white/5" : ""
       }`}
     >
@@ -108,7 +120,14 @@ export function Navbar() {
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <button
-                className={`halo-nav-link flex items-center gap-1 ${pathname.startsWith("/services") || pathname === "/ai-assistant" || pathname === "/lawyers" || pathname === "/legal-news" ? "halo-nav-link-active" : ""}`}
+                className={`halo-nav-link flex items-center gap-1 ${
+                  pathname.startsWith("/services") ||
+                  pathname === "/ai-assistant" ||
+                  pathname === "/lawyers" ||
+                  pathname === "/legal-news"
+                    ? "halo-nav-link-active"
+                    : ""
+                }`}
               >
                 services <ChevronDown size={14} />
               </button>
@@ -137,7 +156,7 @@ export function Navbar() {
               </DropdownMenuItem>
               <DropdownMenuItem asChild>
                 <Link href="/posts" className="flex items-center gap-2">
-                  <MessageSquare size={14} />
+                  <MessageCircle size={14} />
                   <span>Community</span>
                 </Link>
               </DropdownMenuItem>
@@ -212,7 +231,10 @@ export function Navbar() {
 
       {/* Mobile menu */}
       {isMenuOpen && (
-        <div ref={mobileMenuRef} className="md:hidden fixed inset-0 z-50 bg-background pt-16">
+        <div
+          ref={mobileMenuRef}
+          className="md:hidden fixed inset-0 z-50 bg-background/95 backdrop-blur-md pt-16 overflow-y-auto"
+        >
           <div className="container mx-auto px-4 py-8">
             <nav className="flex flex-col space-y-6">
               <div>
@@ -257,6 +279,14 @@ export function Navbar() {
                   >
                     <FileText size={16} />
                     <span>Document Generator</span>
+                  </Link>
+                  <Link
+                    href="/dashboard/cases"
+                    className="flex items-center gap-2 text-base"
+                    onClick={() => setIsMenuOpen(false)}
+                  >
+                    <Scale size={16} />
+                    <span>Case Management</span>
                   </Link>
                 </div>
               </div>
@@ -309,7 +339,7 @@ export function Navbar() {
                           </Button>
                         </Link>
                         <Link href="/register" className="block w-full" onClick={() => setIsMenuOpen(false)}>
-                          <Button className="w-full justify-center">Sign Up</Button>
+                          <Button className="w-full justify-center bg-primary hover:bg-primary/90">Sign Up</Button>
                         </Link>
                       </div>
                     )}

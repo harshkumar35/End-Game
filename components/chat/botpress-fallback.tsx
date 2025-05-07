@@ -1,53 +1,74 @@
 "use client"
 
-import { Button } from "@/components/ui/button"
+import type React from "react"
+
 import { useState } from "react"
-import { MessageSquare } from "lucide-react"
+import { Button } from "@/components/ui/button"
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { Input } from "@/components/ui/input"
+import { MessageCircle, Send, X } from "lucide-react"
 
 export function BotpressFallback() {
   const [isOpen, setIsOpen] = useState(false)
+  const [message, setMessage] = useState("")
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault()
+    if (message.trim()) {
+      // In a real implementation, this would send the message to a fallback service
+      alert(
+        "Our chat service is currently unavailable. Please try again later or contact us directly at harshku612810@gmail.com",
+      )
+      setMessage("")
+    }
+  }
 
   if (!isOpen) {
     return (
       <Button
         onClick={() => setIsOpen(true)}
-        className="fixed bottom-4 right-4 rounded-full p-3 shadow-lg elemental-water"
-        aria-label="Open chat"
+        className="fixed bottom-4 right-4 z-50 rounded-full h-14 w-14 p-0 bg-primary hover:bg-primary/90 shadow-lg"
       >
-        <MessageSquare className="h-6 w-6" />
+        <MessageCircle className="h-6 w-6" />
+        <span className="sr-only">Open chat</span>
       </Button>
     )
   }
 
   return (
-    <div className="fixed bottom-4 right-4 w-80 h-96 glass backdrop-blur-md rounded-lg shadow-lg border border-white/10 flex flex-col overflow-hidden">
-      <div className="p-3 border-b border-white/10 flex justify-between items-center bg-primary/20">
-        <h3 className="font-medium">LegalSathi Assistant</h3>
-        <Button variant="ghost" size="sm" onClick={() => setIsOpen(false)}>
-          ×
+    <Card className="fixed bottom-4 right-4 z-50 w-80 sm:w-96 shadow-lg border border-border/50 bg-background/95 backdrop-blur-sm">
+      <CardHeader className="flex flex-row items-center justify-between space-y-0 p-4">
+        <CardTitle className="text-base font-medium">LegalSathi Assistant</CardTitle>
+        <Button variant="ghost" size="sm" className="h-8 w-8 p-0 rounded-full" onClick={() => setIsOpen(false)}>
+          <X className="h-4 w-4" />
+          <span className="sr-only">Close</span>
         </Button>
-      </div>
-
-      <div className="flex-1 p-4 overflow-y-auto">
-        <div className="bg-primary/10 p-3 rounded-lg mb-4 max-w-[80%]">
-          Hello! I'm your legal assistant. Unfortunately, our chat service is currently unavailable. Please try again
-          later or contact us through the contact page.
+      </CardHeader>
+      <CardContent className="p-4 pt-0">
+        <div className="h-80 overflow-y-auto space-y-4 mb-4">
+          <div className="bg-muted p-3 rounded-lg rounded-tl-none max-w-[80%]">
+            <p className="text-sm">Hello! I'm your LegalSathi assistant. How can I help you today?</p>
+          </div>
+          <div className="bg-muted p-3 rounded-lg rounded-tl-none max-w-[80%]">
+            <p className="text-sm">
+              Our chat service is currently experiencing technical difficulties. Please try again later or contact us
+              directly at harshku612810@gmail.com
+            </p>
+          </div>
         </div>
-      </div>
-
-      <div className="p-3 border-t border-white/10">
-        <div className="flex gap-2">
-          <input
-            type="text"
-            placeholder="Message unavailable..."
-            className="flex-1 p-2 rounded bg-background/50 border border-white/10"
-            disabled
+        <form onSubmit={handleSubmit} className="flex gap-2">
+          <Input
+            placeholder="Type your message..."
+            value={message}
+            onChange={(e) => setMessage(e.target.value)}
+            className="flex-1"
           />
-          <Button size="sm" disabled>
-            Send
+          <Button type="submit" size="icon" className="h-10 w-10">
+            <Send className="h-4 w-4" />
+            <span className="sr-only">Send</span>
           </Button>
-        </div>
-      </div>
-    </div>
+        </form>
+      </CardContent>
+    </Card>
   )
 }

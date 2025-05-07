@@ -28,11 +28,39 @@ interface PostCardProps {
   }
 }
 
-export function PostCard({ post }: PostCardProps) {
+export function PostCard({ post: initialPost }: PostCardProps) {
   const { supabase, user } = useSupabase()
-  const [likes, setLikes] = useState(post.likes)
+  const [post, setPost] = useState(initialPost)
+  const [likes, setLikes] = useState(initialPost.likes)
   const [isLiking, setIsLiking] = useState(false)
   const [hasLiked, setHasLiked] = useState(false)
+
+  // Set up real-time subscription for post updates
+  useEffect(() => {
+    const channel = supabase
+      .channel(`post-${post.id}`)
+      .on(
+        "postgres_changes",
+        {
+          event: "UPDATE",
+          schema: "public",
+          table: "posts",
+          filter: `id=eq.${post.id}`,
+        },
+        (payload) => {
+          setPost((prevPost) => ({
+            ...prevPost,
+            ...payload.new,
+          }))
+          setLikes(payload.new.likes)
+        },
+      )
+      .subscribe()
+
+    return () => {
+      supabase.removeChannel(channel)
+    }
+  }, [supabase, post.id])
 
   useEffect(() => {
     if (!user) return

@@ -1,179 +1,125 @@
 "use client"
 
+import type React from "react"
+
 import { useState } from "react"
-import { Check, ChevronsUpDown, Filter } from "lucide-react"
 import { Button } from "@/components/ui/button"
-import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from "@/components/ui/command"
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
-import { Separator } from "@/components/ui/separator"
-import { cn } from "@/lib/utils"
+import { Input } from "@/components/ui/input"
+import { Label } from "@/components/ui/label"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import { Search, X } from "lucide-react"
 
 interface PostFiltersProps {
-  onFilterChange: (filters: {
-    role?: string
-    tag?: string
-    sort?: string
-  }) => void
+  onFilterChange: (filters: { role: string; tag: string; sort: string }) => void
 }
 
-const roles = [
-  { label: "All Roles", value: "" },
-  { label: "Lawyers", value: "lawyer" },
-  { label: "Clients", value: "client" },
-]
-
-const tags = [
-  { label: "All Tags", value: "" },
-  { label: "Legal Advice", value: "legal-advice" },
-  { label: "Case Study", value: "case-study" },
-  { label: "Question", value: "question" },
-  { label: "Experience", value: "experience" },
-  { label: "News", value: "news" },
-]
-
-const sortOptions = [
-  { label: "Most Recent", value: "recent" },
-  { label: "Most Liked", value: "likes" },
-]
-
 export function PostFilters({ onFilterChange }: PostFiltersProps) {
+  const [search, setSearch] = useState("")
   const [role, setRole] = useState("")
   const [tag, setTag] = useState("")
   const [sort, setSort] = useState("recent")
-  const [openRole, setOpenRole] = useState(false)
-  const [openTag, setOpenTag] = useState(false)
-  const [openSort, setOpenSort] = useState(false)
+  const [availableTags] = useState([
+    "legal-advice",
+    "case-study",
+    "question",
+    "discussion",
+    "news",
+    "opinion",
+    "resources",
+    "career",
+  ])
 
-  const handleRoleChange = (value: string) => {
-    setRole(value)
-    onFilterChange({ role: value, tag, sort })
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault()
+    // Apply filters
+    onFilterChange({ role, tag, sort })
   }
 
-  const handleTagChange = (value: string) => {
-    setTag(value)
-    onFilterChange({ role, tag: value, sort })
+  const handleClearFilters = () => {
+    setSearch("")
+    setRole("")
+    setTag("")
+    setSort("recent")
+    onFilterChange({ role: "", tag: "", sort: "recent" })
   }
 
-  const handleSortChange = (value: string) => {
-    setSort(value)
-    onFilterChange({ role, tag, sort: value })
-  }
+  const hasActiveFilters = role || tag || sort !== "recent"
 
   return (
-    <div className="flex flex-col sm:flex-row items-center gap-4 mb-6">
-      <div className="flex items-center gap-2">
-        <Filter className="h-4 w-4 text-muted-foreground" />
-        <span className="text-sm font-medium">Filters:</span>
-      </div>
-
-      <div className="flex flex-wrap gap-2">
-        <Popover open={openRole} onOpenChange={setOpenRole}>
-          <PopoverTrigger asChild>
-            <Button
-              variant="outline"
-              role="combobox"
-              aria-expanded={openRole}
-              className="justify-between min-w-[150px]"
-            >
-              {role ? roles.find((r) => r.value === role)?.label : "All Roles"}
-              <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+    <div className="space-y-4">
+      <form onSubmit={handleSubmit} className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+        <div className="space-y-2">
+          <Label htmlFor="search">Search</Label>
+          <div className="relative">
+            <Input
+              id="search"
+              placeholder="Search posts..."
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              className="pr-8"
+            />
+            <Button type="submit" size="sm" variant="ghost" className="absolute right-0 top-0 h-full px-3">
+              <Search className="h-4 w-4" />
             </Button>
-          </PopoverTrigger>
-          <PopoverContent className="w-[200px] p-0">
-            <Command>
-              <CommandInput placeholder="Search roles..." />
-              <CommandList>
-                <CommandEmpty>No role found.</CommandEmpty>
-                <CommandGroup>
-                  {roles.map((r) => (
-                    <CommandItem
-                      key={r.value}
-                      value={r.value}
-                      onSelect={(currentValue) => {
-                        handleRoleChange(currentValue === role ? "" : currentValue)
-                        setOpenRole(false)
-                      }}
-                    >
-                      <Check className={cn("mr-2 h-4 w-4", role === r.value ? "opacity-100" : "opacity-0")} />
-                      {r.label}
-                    </CommandItem>
-                  ))}
-                </CommandGroup>
-              </CommandList>
-            </Command>
-          </PopoverContent>
-        </Popover>
+          </div>
+        </div>
 
-        <Popover open={openTag} onOpenChange={setOpenTag}>
-          <PopoverTrigger asChild>
-            <Button variant="outline" role="combobox" aria-expanded={openTag} className="justify-between min-w-[150px]">
-              {tag ? tags.find((t) => t.value === tag)?.label : "All Tags"}
-              <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
-            </Button>
-          </PopoverTrigger>
-          <PopoverContent className="w-[200px] p-0">
-            <Command>
-              <CommandInput placeholder="Search tags..." />
-              <CommandList>
-                <CommandEmpty>No tag found.</CommandEmpty>
-                <CommandGroup>
-                  {tags.map((t) => (
-                    <CommandItem
-                      key={t.value}
-                      value={t.value}
-                      onSelect={(currentValue) => {
-                        handleTagChange(currentValue === tag ? "" : currentValue)
-                        setOpenTag(false)
-                      }}
-                    >
-                      <Check className={cn("mr-2 h-4 w-4", tag === t.value ? "opacity-100" : "opacity-0")} />
-                      {t.label}
-                    </CommandItem>
-                  ))}
-                </CommandGroup>
-              </CommandList>
-            </Command>
-          </PopoverContent>
-        </Popover>
+        <div className="space-y-2">
+          <Label htmlFor="role">Role</Label>
+          <Select value={role} onValueChange={setRole}>
+            <SelectTrigger id="role">
+              <SelectValue placeholder="All roles" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="">All roles</SelectItem>
+              <SelectItem value="lawyer">Lawyers</SelectItem>
+              <SelectItem value="client">Clients</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
 
-        <Separator orientation="vertical" className="h-8 hidden sm:block" />
+        <div className="space-y-2">
+          <Label htmlFor="tag">Tag</Label>
+          <Select value={tag} onValueChange={setTag}>
+            <SelectTrigger id="tag">
+              <SelectValue placeholder="All tags" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">All tags</SelectItem>
+              {availableTags.map((t) => (
+                <SelectItem key={t} value={t}>
+                  {t}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
 
-        <Popover open={openSort} onOpenChange={setOpenSort}>
-          <PopoverTrigger asChild>
-            <Button
-              variant="outline"
-              role="combobox"
-              aria-expanded={openSort}
-              className="justify-between min-w-[150px]"
-            >
-              {sortOptions.find((s) => s.value === sort)?.label}
-              <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
-            </Button>
-          </PopoverTrigger>
-          <PopoverContent className="w-[200px] p-0">
-            <Command>
-              <CommandInput placeholder="Search sort options..." />
-              <CommandList>
-                <CommandEmpty>No option found.</CommandEmpty>
-                <CommandGroup>
-                  {sortOptions.map((s) => (
-                    <CommandItem
-                      key={s.value}
-                      value={s.value}
-                      onSelect={(currentValue) => {
-                        handleSortChange(currentValue)
-                        setOpenSort(false)
-                      }}
-                    >
-                      <Check className={cn("mr-2 h-4 w-4", sort === s.value ? "opacity-100" : "opacity-0")} />
-                      {s.label}
-                    </CommandItem>
-                  ))}
-                </CommandGroup>
-              </CommandList>
-            </Command>
-          </PopoverContent>
-        </Popover>
+        <div className="space-y-2">
+          <Label htmlFor="sort">Sort by</Label>
+          <Select value={sort} onValueChange={setSort}>
+            <SelectTrigger id="sort">
+              <SelectValue placeholder="Most recent" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="recent">Most recent</SelectItem>
+              <SelectItem value="likes">Most liked</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
+      </form>
+
+      <div className="flex justify-between items-center">
+        <Button type="submit" onClick={handleSubmit} className="bg-primary hover:bg-primary/90">
+          Apply Filters
+        </Button>
+
+        {hasActiveFilters && (
+          <Button variant="outline" onClick={handleClearFilters} className="flex items-center gap-1">
+            <X className="h-4 w-4" />
+            Clear Filters
+          </Button>
+        )}
       </div>
     </div>
   )

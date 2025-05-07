@@ -281,7 +281,7 @@ export function ProfileForm({ user, lawyerProfile }: ProfileFormProps) {
       )}
 
       <div className="flex justify-end">
-        <Button type="submit" className="gradient-bg" disabled={isLoading}>
+        <Button type="submit" className="bg-primary hover:bg-primary/90" disabled={isLoading}>
           {isLoading ? (
             <>
               <Loader2 className="mr-2 h-4 w-4 animate-spin" />

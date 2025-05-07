@@ -12,7 +12,7 @@ import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
 import { toast } from "@/components/ui/use-toast"
 import { Badge } from "@/components/ui/badge"
-import { X } from "lucide-react"
+import { X, Loader2 } from "lucide-react"
 
 export function NewPostForm() {
   const router = useRouter()
@@ -83,13 +83,16 @@ export function NewPostForm() {
       if (userError) throw userError
 
       // Create post
-      const { error: postError } = await supabase.from("posts").insert({
-        user_id: user.id,
-        title: formData.title,
-        content: formData.content,
-        role: userData.role,
-        tags: tags,
-      })
+      const { data: newPost, error: postError } = await supabase
+        .from("posts")
+        .insert({
+          user_id: user.id,
+          title: formData.title,
+          content: formData.content,
+          role: userData.role,
+          tags: tags,
+        })
+        .select()
 
       if (postError) throw postError
 
@@ -98,6 +101,15 @@ export function NewPostForm() {
         description: "Your post has been published successfully",
       })
 
+      // Clear form
+      setFormData({
+        title: "",
+        content: "",
+        tagInput: "",
+      })
+      setTags([])
+
+      // Navigate to community page
       router.push("/community")
       router.refresh()
     } catch (error: any) {
@@ -177,8 +189,15 @@ export function NewPostForm() {
           <Button variant="outline" type="button" onClick={() => router.back()}>
             Cancel
           </Button>
-          <Button type="submit" className="gradient-bg" disabled={isLoading}>
-            {isLoading ? "Publishing..." : "Publish Post"}
+          <Button type="submit" className="bg-primary hover:bg-primary/90" disabled={isLoading}>
+            {isLoading ? (
+              <span className="flex items-center gap-2">
+                <Loader2 className="h-4 w-4 animate-spin" />
+                Publishing...
+              </span>
+            ) : (
+              "Publish Post"
+            )}
           </Button>
         </CardFooter>
       </form>

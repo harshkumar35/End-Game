@@ -1,72 +1,99 @@
 "use client"
 
-import { useEffect, useState, useRef } from "react"
-import Script from "next/script"
+import { useEffect, useState } from "react"
+import { Loader2 } from "lucide-react"
+import { BotpressFallback } from "./botpress-fallback"
+
+declare global {
+  interface Window {
+    botpressWebChat: {
+      init: (config: any) => void
+      onEvent: (event: string, handler: (event: any) => void) => void
+      sendEvent: (payload: any) => void
+    }
+  }
+}
 
 export function BotpressChat() {
   const [isLoaded, setIsLoaded] = useState(false)
-  const [error, setError] = useState<string | null>(null)
-  const scriptLoaded = useRef(false)
+  const [isError, setIsError] = useState(false)
+  const [isVisible, setIsVisible] = useState(false)
 
   useEffect(() => {
-    // Check if we're in the browser
-    if (typeof window === "undefined") return
+    // Check if Botpress is loaded
+    const checkBotpressLoaded = () => {
+      if (window.botpressWebChat) {
+        setIsLoaded(true)
+        return true
+      }
+      return false
+    }
 
-    // Add a delay to ensure the page is fully loaded
-    const timer = setTimeout(() => {
-      console.log("Botpress scripts should be loaded via Script components")
-    }, 1000)
+    // Try to initialize Botpress
+    const initializeBotpress = () => {
+      if (checkBotpressLoaded()) {
+        try {
+          // Listen for the ready event
+          window.botpressWebChat.onEvent("webchatReady", () => {
+            console.log("Botpress webchat is ready")
+            setIsVisible(true)
+          })
 
-    // Cleanup function
-    return () => {
-      clearTimeout(timer)
+          // Listen for errors
+          window.botpressWebChat.onEvent("webchatError", (error) => {
+            console.error("Botpress webchat error:", error)
+            setIsError(true)
+          })
+
+          return true
+        } catch (error) {
+          console.error("Error initializing Botpress:", error)
+          setIsError(true)
+          return false
+        }
+      }
+      return false
+    }
+
+    // Try to initialize immediately
+    if (!initializeBotpress()) {
+      // If not loaded yet, try again after a delay
+      const interval = setInterval(() => {
+        if (initializeBotpress()) {
+          clearInterval(interval)
+        }
+      }, 500)
+
+      // Set a timeout to stop trying after 10 seconds
+      const timeout = setTimeout(() => {
+        clearInterval(interval)
+        if (!isLoaded) {
+          console.error("Botpress failed to load after timeout")
+          setIsError(true)
+        }
+      }, 10000)
+
+      return () => {
+        clearInterval(interval)
+        clearTimeout(timeout)
+      }
     }
   }, [])
 
-  return (
-    <>
-      {/* Load the Botpress scripts */}
-      <Script
-        src="https://cdn.botpress.cloud/webchat/v2.4/inject.js"
-        strategy="afterInteractive"
-        onLoad={() => {
-          console.log("Botpress inject script loaded")
-          scriptLoaded.current = true
-        }}
-        onError={(e) => {
-          console.error("Error loading Botpress inject script:", e)
-          setError("Failed to load chat script")
-        }}
-      />
-
-      <Script
-        src="https://files.bpcontent.cloud/2025/05/04/06/20250504065744-37MIVWKZ.js"
-        strategy="afterInteractive"
-        onLoad={() => {
-          console.log("Botpress content script loaded")
-          setIsLoaded(true)
-        }}
-        onError={(e) => {
-          console.error("Error loading Botpress content script:", e)
-          setError("Failed to load chat content")
-        }}
-      />
-
-      {error && (
-        <div className="hidden">
-          {/* Hidden error message for debugging */}
-          Error loading Botpress: {error}
-        </div>
-      )}
-    </>
-  )
-}
-
-// Add TypeScript interface for the global window object
-declare global {
-  interface Window {
-    botpressWebChat?: {
-      init: (config: any) => void
-    }
+  // Show loading state while Botpress is initializing
+  if (!isLoaded && !isError) {
+    return (
+      <div className="fixed bottom-4 right-4 z-50 bg-background/80 backdrop-blur-sm p-4 rounded-full shadow-lg">
+        <Loader2 className="h-6 w-6 animate-spin text-primary" />
+      </div>
+    )
   }
+
+  // Show fallback if there was an error
+  if (isError) {
+    return <BotpressFallback />
+  }
+
+  // Botpress is loaded and initialized
+  return null // Botpress injects its own UI
 }
