@@ -2,10 +2,11 @@ import Link from "next/link"
 import { Button } from "@/components/ui/button"
 import { CosmicBackground } from "@/components/ui/cosmic-background"
 import { AiSearchBar } from "@/components/hero/ai-search-bar"
+import { AnimatedServices } from "@/components/home/animated-services"
 
 export default function Home() {
   return (
-    <>
+    <main>
       <CosmicBackground />
 
       <section className="relative min-h-screen flex flex-col items-center justify-center pt-20 pb-16 overflow-hidden">
@@ -46,6 +47,9 @@ export default function Home() {
           </div>
         </div>
       </section>
+
+      {/* Add the animated services section */}
+      <AnimatedServices />
 
       <section className="relative py-24 z-10">
         <div className="container mx-auto px-4">
@@ -118,7 +122,7 @@ export default function Home() {
           </div>
         </div>
       </section>
-    </>
+    </main>
   )
 }
 
