@@ -1,18 +1,24 @@
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
+import { CosmicBackground } from "@/components/ui/cosmic-background"
 import { AiSearchBar } from "@/components/hero/ai-search-bar"
 
 export default function Home() {
   return (
     <>
-      <section className="relative pt-20 pb-16 md:pt-32 md:pb-24 overflow-hidden">
+      <CosmicBackground />
+
+      <section className="relative min-h-screen flex flex-col items-center justify-center pt-20 pb-16 overflow-hidden">
         <div className="container mx-auto px-4 text-center relative z-10">
-          {/* Main heading with animation */}
-          <h1 className="text-5xl md:text-7xl font-bold mb-6 bg-clip-text text-transparent bg-gradient-to-r from-blue-400 to-purple-600">
-            LegalSathi<span className="text-primary">.</span>
+          {/* Hero glow effect */}
+          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[800px] rounded-full bg-blue-500/10 blur-[100px] pointer-events-none"></div>
+
+          {/* Main heading */}
+          <h1 className="text-5xl md:text-7xl lg:text-8xl font-bold mb-6 text-transparent bg-clip-text bg-gradient-to-r from-white to-blue-300">
+            LegalSathi<span className="text-blue-400">.</span>
           </h1>
 
-          <p className="text-xl md:text-2xl text-muted-foreground max-w-2xl mx-auto mb-10">
+          <p className="text-xl md:text-2xl text-white/70 max-w-2xl mx-auto mb-10">
             We connect you with the best legal professionals for your needs.
           </p>
 
@@ -21,12 +27,19 @@ export default function Home() {
 
           <div className="flex flex-wrap justify-center gap-4 mt-16">
             <Link href="/lawyers">
-              <Button size="lg" className="bg-primary hover:bg-primary/90">
+              <Button
+                size="lg"
+                className="bg-blue-500 hover:bg-blue-600 text-white border-none h-12 px-8 rounded-full text-base"
+              >
                 Find Lawyers
               </Button>
             </Link>
             <Link href="/contact">
-              <Button size="lg" variant="outline">
+              <Button
+                size="lg"
+                variant="outline"
+                className="border-white/20 text-white hover:bg-white/10 h-12 px-8 rounded-full text-base"
+              >
                 Contact Us
               </Button>
             </Link>
@@ -34,41 +47,46 @@ export default function Home() {
         </div>
       </section>
 
-      <section className="py-16 md:py-24">
+      <section className="relative py-24 z-10">
         <div className="container mx-auto px-4">
-          <h2 className="text-3xl md:text-4xl font-bold text-center mb-12">Our Services</h2>
+          <h2 className="text-3xl md:text-4xl font-bold text-center mb-12 text-white">Our Services</h2>
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
             {services.map((service, index) => (
               <div
                 key={index}
-                className="bg-card border border-border rounded-lg p-6 transition-all duration-300 hover:border-primary/20 hover:translate-y-[-4px]"
+                className="bg-white/5 backdrop-blur-md border border-white/10 rounded-xl p-6 transition-all duration-300 hover:bg-white/10 hover:translate-y-[-4px] group"
               >
-                <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center mb-4">
+                <div className="w-12 h-12 rounded-full bg-blue-500/20 flex items-center justify-center mb-4 group-hover:bg-blue-500/30 transition-all duration-300">
                   {service.icon}
                 </div>
-                <h3 className="text-xl font-semibold mb-2">{service.title}</h3>
-                <p className="text-muted-foreground">{service.description}</p>
+                <h3 className="text-xl font-semibold mb-2 text-white">{service.title}</h3>
+                <p className="text-white/70">{service.description}</p>
               </div>
             ))}
           </div>
         </div>
       </section>
 
-      <section className="py-16 md:py-24 bg-muted/30">
+      <section className="relative py-24 z-10 bg-white/5 backdrop-blur-md">
         <div className="container mx-auto px-4">
-          <h2 className="text-3xl md:text-4xl font-bold text-center mb-12">Why Choose Us</h2>
+          <h2 className="text-3xl md:text-4xl font-bold text-center mb-12 text-white">Why Choose Us</h2>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-12">
             <div>
-              <h3 className="text-2xl font-semibold mb-4">Expert Legal Professionals</h3>
-              <p className="text-muted-foreground mb-6">
+              <h3 className="text-2xl font-semibold mb-4 text-white">Expert Legal Professionals</h3>
+              <p className="text-white/70 mb-6">
                 Our platform connects you with verified and experienced lawyers across various specializations.
               </p>
               <ul className="space-y-2">
                 {features.slice(0, 3).map((feature, index) => (
-                  <li key={index} className="flex items-start gap-2">
-                    <svg className="w-5 h-5 text-primary mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <li key={index} className="flex items-start gap-2 text-white/80">
+                    <svg
+                      className="w-5 h-5 text-blue-400 mt-0.5 flex-shrink-0"
+                      fill="none"
+                      viewBox="0 0 24 24"
+                      stroke="currentColor"
+                    >
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
                     </svg>
                     <span>{feature}</span>
@@ -77,14 +95,19 @@ export default function Home() {
               </ul>
             </div>
             <div>
-              <h3 className="text-2xl font-semibold mb-4">Comprehensive Legal Solutions</h3>
-              <p className="text-muted-foreground mb-6">
+              <h3 className="text-2xl font-semibold mb-4 text-white">Comprehensive Legal Solutions</h3>
+              <p className="text-white/70 mb-6">
                 From document generation to legal advice, we provide end-to-end solutions for all your legal needs.
               </p>
               <ul className="space-y-2">
                 {features.slice(3, 6).map((feature, index) => (
-                  <li key={index} className="flex items-start gap-2">
-                    <svg className="w-5 h-5 text-primary mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <li key={index} className="flex items-start gap-2 text-white/80">
+                    <svg
+                      className="w-5 h-5 text-blue-400 mt-0.5 flex-shrink-0"
+                      fill="none"
+                      viewBox="0 0 24 24"
+                      stroke="currentColor"
+                    >
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
                     </svg>
                     <span>{feature}</span>
@@ -104,7 +127,7 @@ const services = [
     title: "Legal Consultation",
     description: "Get expert advice from qualified lawyers on your legal matters.",
     icon: (
-      <svg className="w-6 h-6 text-primary" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+      <svg className="w-6 h-6 text-blue-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
         <path
           strokeLinecap="round"
           strokeLinejoin="round"
@@ -118,7 +141,7 @@ const services = [
     title: "Document Generation",
     description: "Create legally valid documents with our automated templates.",
     icon: (
-      <svg className="w-6 h-6 text-primary" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+      <svg className="w-6 h-6 text-blue-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
         <path
           strokeLinecap="round"
           strokeLinejoin="round"
@@ -132,7 +155,7 @@ const services = [
     title: "Legal Community",
     description: "Connect with others facing similar legal challenges and share experiences.",
     icon: (
-      <svg className="w-6 h-6 text-primary" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+      <svg className="w-6 h-6 text-blue-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
         <path
           strokeLinecap="round"
           strokeLinejoin="round"

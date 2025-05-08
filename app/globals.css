@@ -4,13 +4,13 @@
 
 @layer base {
   :root {
-    --background: 222.2 84% 4.9%;
+    --background: 222 47% 11%;
     --foreground: 210 40% 98%;
 
-    --card: 222.2 84% 6.9%;
+    --card: 222 47% 11%;
     --card-foreground: 210 40% 98%;
 
-    --popover: 222.2 84% 4.9%;
+    --popover: 222 47% 11%;
     --popover-foreground: 210 40% 98%;
 
     --primary: 217.2 91.2% 59.8%;
@@ -33,50 +33,6 @@
     --ring: 224.3 76.3% 48%;
 
     --radius: 0.5rem;
-
-    --chart-1: 217.2 91.2% 59.8%;
-    --chart-2: 262.1 83.3% 57.8%;
-    --chart-3: 316.6 73.3% 52.5%;
-    --chart-4: 175.4 84.8% 39.8%;
-    --chart-5: 20.5 90.2% 48.2%;
-  }
-
-  .light {
-    --background: 0 0% 100%;
-    --foreground: 222.2 84% 4.9%;
-
-    --card: 0 0% 100%;
-    --card-foreground: 222.2 84% 4.9%;
-
-    --popover: 0 0% 100%;
-    --popover-foreground: 222.2 84% 4.9%;
-
-    --primary: 221.2 83.2% 53.3%;
-    --primary-foreground: 210 40% 98%;
-
-    --secondary: 210 40% 96.1%;
-    --secondary-foreground: 222.2 47.4% 11.2%;
-
-    --muted: 210 40% 96.1%;
-    --muted-foreground: 215.4 16.3% 46.9%;
-
-    --accent: 210 40% 96.1%;
-    --accent-foreground: 222.2 47.4% 11.2%;
-
-    --destructive: 0 84.2% 60.2%;
-    --destructive-foreground: 210 40% 98%;
-
-    --border: 214.3 31.8% 91.4%;
-    --input: 214.3 31.8% 91.4%;
-    --ring: 221.2 83.2% 53.3%;
-
-    --radius: 0.5rem;
-
-    --chart-1: 221.2 83.2% 53.3%;
-    --chart-2: 262.1 83.3% 57.8%;
-    --chart-3: 316.6 73.3% 52.5%;
-    --chart-4: 175.4 84.8% 39.8%;
-    --chart-5: 20.5 90.2% 48.2%;
   }
 }
 
@@ -86,87 +42,8 @@
   }
   body {
     @apply bg-background text-foreground;
+    font-feature-settings: "rlig" 1, "calt" 1;
   }
-}
-
-@layer components {
-  .halo-glow {
-    @apply absolute rounded-full opacity-20 blur-[100px];
-  }
-
-  .halo-nav-link {
-    @apply text-sm;
-    @apply font-medium;
-    @apply text-muted-foreground;
-    @apply hover:text-foreground;
-    @apply transition-colors;
-    @apply duration-200;
-  }
-
-  .halo-nav-link-active {
-    @apply text-foreground;
-  }
-
-  .halo-button {
-    @apply px-6 py-3 rounded-full transition-all duration-300 border border-white/10 hover:border-white/20 bg-secondary hover:bg-secondary/80;
-  }
-
-  .halo-button-primary {
-    @apply bg-primary text-primary-foreground hover:bg-primary/90;
-  }
-
-  .halo-container {
-    @apply container px-4 mx-auto max-w-7xl;
-  }
-
-  .halo-heading {
-    @apply text-4xl md:text-6xl lg:text-7xl font-bold tracking-tight;
-    background: linear-gradient(to right, #fff, #a3b9ff);
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-  }
-
-  .halo-subheading {
-    @apply text-lg md:text-xl text-muted-foreground max-w-2xl mx-auto;
-  }
-}
-
-/* Fluid background */
-.fluid-bg {
-  @apply fixed inset-0 w-full h-full pointer-events-none z-0;
-}
-
-.fluid-blob {
-  @apply absolute rounded-full filter blur-[80px];
-}
-
-/* Scrollbar styling */
-::-webkit-scrollbar {
-  width: 8px;
-  height: 8px;
-}
-
-::-webkit-scrollbar-track {
-  background: transparent;
-}
-
-::-webkit-scrollbar-thumb {
-  background: rgba(0, 114, 245, 0.3);
-  border-radius: 4px;
-}
-
-::-webkit-scrollbar-thumb:hover {
-  background: rgba(0, 114, 245, 0.5);
-}
-
-/* Smooth scrolling */
-html {
-  scroll-behavior: smooth;
-}
-
-/* Transition for theme switching */
-body {
-  transition: background-color 0.3s ease, color 0.3s ease;
 }
 
 /* Animations */
@@ -200,32 +77,54 @@ body {
   opacity: 0;
 }
 
-/* Universe background stars */
+/* Cosmic glow effects */
+.cosmic-glow {
+  box-shadow: 0 0 30px rgba(59, 130, 246, 0.3);
+  transition: box-shadow 0.3s ease;
+}
+
+.cosmic-glow:hover {
+  box-shadow: 0 0 50px rgba(59, 130, 246, 0.5);
+}
+
+/* Scrollbar styling */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: rgba(0, 0, 0, 0.2);
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb {
+  background: rgba(59, 130, 246, 0.3);
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(59, 130, 246, 0.5);
+}
+
+/* Smooth scrolling */
+html {
+  scroll-behavior: smooth;
+}
+
+/* Star twinkle animation */
 @keyframes twinkle {
   0% {
-    opacity: 0.2;
+    opacity: 0.3;
   }
   50% {
     opacity: 1;
   }
   100% {
-    opacity: 0.2;
+    opacity: 0.3;
   }
 }
 
 .star {
-  @apply absolute rounded-full bg-white;
   animation: twinkle 4s infinite ease-in-out;
-}
-
-.star-small {
-  @apply w-0.5 h-0.5;
-}
-
-.star-medium {
-  @apply w-1 h-1;
-}
-
-.star-large {
-  @apply w-1.5 h-1.5;
 }

@@ -2,7 +2,7 @@
 
 import type React from "react"
 
-import { useEffect, useState } from "react"
+import { useState, useEffect } from "react"
 import { useSearchParams } from "next/navigation"
 import { Bot, Send, User } from "lucide-react"
 import { Button } from "@/components/ui/button"
@@ -16,7 +16,7 @@ interface Message {
 
 export default function AIAssistantPage() {
   const searchParams = useSearchParams()
-  const initialQuery = searchParams.get("q") || ""
+  const initialQuery = searchParams.get("query") || ""
 
   const [messages, setMessages] = useState<Message[]>([])
   const [input, setInput] = useState(initialQuery)
@@ -35,7 +35,7 @@ export default function AIAssistantPage() {
     if (initialQuery) {
       handleInitialQuery(initialQuery)
     }
-  }, [])
+  }, [initialQuery])
 
   const handleInitialQuery = async (query: string) => {
     setMessages((prev) => [...prev, { role: "user", content: query }])
@@ -81,10 +81,10 @@ export default function AIAssistantPage() {
 
   return (
     <div className="container max-w-4xl mx-auto px-4 py-8">
-      <Card className="border-primary/20">
+      <Card className="border-primary/20 bg-black/50 backdrop-blur-md border border-white/10">
         <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Bot className="h-6 w-6 text-primary" />
+          <CardTitle className="flex items-center gap-2 text-white">
+            <Bot className="h-6 w-6 text-blue-400" />
             LegalSathi AI Assistant
           </CardTitle>
         </CardHeader>
@@ -95,31 +95,31 @@ export default function AIAssistantPage() {
                 <div
                   className={`flex items-start gap-2 max-w-[80%] ${
                     message.role === "assistant"
-                      ? "bg-secondary p-3 rounded-lg rounded-tl-none"
-                      : "bg-primary text-primary-foreground p-3 rounded-lg rounded-tr-none"
+                      ? "bg-blue-950/50 border border-blue-800/50 p-3 rounded-lg rounded-tl-none"
+                      : "bg-blue-600 p-3 rounded-lg rounded-tr-none"
                   }`}
                 >
-                  {message.role === "assistant" && <Bot className="h-5 w-5 mt-1 flex-shrink-0" />}
-                  <div className="break-words">{message.content}</div>
-                  {message.role === "user" && <User className="h-5 w-5 mt-1 flex-shrink-0" />}
+                  {message.role === "assistant" && <Bot className="h-5 w-5 mt-1 flex-shrink-0 text-blue-400" />}
+                  <div className="break-words text-white">{message.content}</div>
+                  {message.role === "user" && <User className="h-5 w-5 mt-1 flex-shrink-0 text-white" />}
                 </div>
               </div>
             ))}
             {isLoading && (
               <div className="flex justify-start">
-                <div className="bg-secondary p-3 rounded-lg rounded-tl-none flex items-center gap-2">
-                  <Bot className="h-5 w-5" />
+                <div className="bg-blue-950/50 border border-blue-800/50 p-3 rounded-lg rounded-tl-none flex items-center gap-2">
+                  <Bot className="h-5 w-5 text-blue-400" />
                   <div className="flex space-x-2">
                     <div
-                      className="w-2 h-2 bg-primary/60 rounded-full animate-bounce"
+                      className="w-2 h-2 bg-blue-400 rounded-full animate-bounce"
                       style={{ animationDelay: "0ms" }}
                     ></div>
                     <div
-                      className="w-2 h-2 bg-primary/60 rounded-full animate-bounce"
+                      className="w-2 h-2 bg-blue-400 rounded-full animate-bounce"
                       style={{ animationDelay: "150ms" }}
                     ></div>
                     <div
-                      className="w-2 h-2 bg-primary/60 rounded-full animate-bounce"
+                      className="w-2 h-2 bg-blue-400 rounded-full animate-bounce"
                       style={{ animationDelay: "300ms" }}
                     ></div>
                   </div>
@@ -133,10 +133,14 @@ export default function AIAssistantPage() {
               value={input}
               onChange={(e) => setInput(e.target.value)}
               placeholder="Type your legal question..."
-              className="flex-1"
+              className="flex-1 bg-blue-950/30 border-blue-800/50 text-white placeholder:text-white/50"
               disabled={isLoading}
             />
-            <Button type="submit" disabled={!input.trim() || isLoading}>
+            <Button
+              type="submit"
+              disabled={!input.trim() || isLoading}
+              className="bg-blue-600 hover:bg-blue-700 text-white"
+            >
               <Send className="h-4 w-4" />
               <span className="sr-only">Send</span>
             </Button>
