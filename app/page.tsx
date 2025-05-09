@@ -57,16 +57,15 @@ export default function Home() {
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
             {services.map((service, index) => (
-              <div
-                key={index}
-                className="bg-white/5 backdrop-blur-md border border-white/10 rounded-xl p-6 transition-all duration-300 hover:bg-white/10 hover:translate-y-[-4px] group"
-              >
-                <div className="w-12 h-12 rounded-full bg-blue-500/20 flex items-center justify-center mb-4 group-hover:bg-blue-500/30 transition-all duration-300">
-                  {service.icon}
+              <Link href={service.link} key={index} className="group block">
+                <div className="bg-white/5 backdrop-blur-md border border-white/10 rounded-xl p-6 transition-all duration-300 hover:bg-white/10 hover:translate-y-[-4px] group h-full">
+                  <div className="w-12 h-12 rounded-full bg-blue-500/20 flex items-center justify-center mb-4 group-hover:bg-blue-500/30 transition-all duration-300">
+                    {service.icon}
+                  </div>
+                  <h3 className="text-xl font-semibold mb-2 text-white">{service.title}</h3>
+                  <p className="text-white/70">{service.description}</p>
                 </div>
-                <h3 className="text-xl font-semibold mb-2 text-white">{service.title}</h3>
-                <p className="text-white/70">{service.description}</p>
-              </div>
+              </Link>
             ))}
           </div>
         </div>
@@ -130,6 +129,7 @@ const services = [
   {
     title: "Legal Consultation",
     description: "Get expert advice from qualified lawyers on your legal matters.",
+    link: "/lawyers",
     icon: (
       <svg className="w-6 h-6 text-blue-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
         <path
@@ -144,6 +144,7 @@ const services = [
   {
     title: "Document Generation",
     description: "Create legally valid documents with our automated templates.",
+    link: "/dashboard/document-generator",
     icon: (
       <svg className="w-6 h-6 text-blue-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
         <path
@@ -158,6 +159,7 @@ const services = [
   {
     title: "Legal Community",
     description: "Connect with others facing similar legal challenges and share experiences.",
+    link: "/posts",
     icon: (
       <svg className="w-6 h-6 text-blue-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
         <path

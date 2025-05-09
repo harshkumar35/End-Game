@@ -15,6 +15,8 @@ export function createClientSupabaseClient() {
             persistSession: true,
             autoRefreshToken: true,
             detectSessionInUrl: true,
+            // Set the site URL to your production domain
+            site: process.env.NEXT_PUBLIC_SITE_URL || "https://legalsathi.com",
           },
         },
       })
