@@ -79,13 +79,15 @@ export default function CommunityPage() {
       .on(
         "postgres_changes",
         {
-          event: "INSERT",
+          event: "*", // Listen for all events (INSERT, UPDATE, DELETE)
           schema: "public",
           table: "posts",
         },
-        (payload) => {
-          // Fetch the user data for the new post
-          const fetchUserForPost = async () => {
+        async (payload) => {
+          console.log("Real-time post update:", payload)
+
+          if (payload.eventType === "INSERT") {
+            // Fetch the user data for the new post
             const { data: userData } = await supabase
               .from("users")
               .select("id, full_name, email")
@@ -110,9 +112,15 @@ export default function CommunityPage() {
                 return [...currentPosts, newPost]
               }
             })
+          } else if (payload.eventType === "UPDATE") {
+            // Update the post in the state
+            setPosts((currentPosts) =>
+              currentPosts.map((post) => (post.id === payload.new.id ? { ...post, ...payload.new } : post)),
+            )
+          } else if (payload.eventType === "DELETE") {
+            // Remove the post from the state
+            setPosts((currentPosts) => currentPosts.filter((post) => post.id !== payload.old.id))
           }
-
-          fetchUserForPost()
         },
       )
       .subscribe()

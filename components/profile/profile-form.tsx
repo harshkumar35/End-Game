@@ -31,6 +31,7 @@ export function ProfileForm({ user, lawyerProfile }: ProfileFormProps) {
     specialization: lawyerProfile?.specialization || "",
     experience: lawyerProfile?.experience?.toString() || "0",
     hourlyRate: lawyerProfile?.hourly_rate?.toString() || "0",
+    isAvailable: lawyerProfile?.is_available === undefined ? true : lawyerProfile.is_available,
   })
 
   // Set up real-time subscription for user updates
@@ -46,6 +47,7 @@ export function ProfileForm({ user, lawyerProfile }: ProfileFormProps) {
           filter: `id=eq.${user?.id}`,
         },
         (payload) => {
+          console.log("User profile updated:", payload)
           // Update local state with new data
           setFormData((prev) => ({
             ...prev,
@@ -59,6 +61,9 @@ export function ProfileForm({ user, lawyerProfile }: ProfileFormProps) {
             title: "Profile Updated",
             description: "Your profile information has been updated.",
           })
+
+          // Refresh the page to show updated data
+          router.refresh()
         },
       )
       .subscribe()
@@ -77,6 +82,7 @@ export function ProfileForm({ user, lawyerProfile }: ProfileFormProps) {
             filter: `user_id=eq.${user?.id}`,
           },
           (payload) => {
+            console.log("Lawyer profile updated:", payload)
             // Update local state with new data
             setFormData((prev) => ({
               ...prev,
@@ -84,12 +90,16 @@ export function ProfileForm({ user, lawyerProfile }: ProfileFormProps) {
               specialization: payload.new.specialization || prev.specialization,
               experience: payload.new.experience?.toString() || prev.experience,
               hourlyRate: payload.new.hourly_rate?.toString() || prev.hourlyRate,
+              isAvailable: payload.new.is_available === undefined ? prev.isAvailable : payload.new.is_available,
             }))
 
             toast({
               title: "Lawyer Profile Updated",
               description: "Your lawyer profile information has been updated.",
             })
+
+            // Refresh the page to show updated data
+            router.refresh()
           },
         )
         .subscribe()
@@ -99,7 +109,7 @@ export function ProfileForm({ user, lawyerProfile }: ProfileFormProps) {
       supabase.removeChannel(userChannel)
       if (lawyerChannel) supabase.removeChannel(lawyerChannel)
     }
-  }, [supabase, user])
+  }, [supabase, user, router])
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     setFormData({
@@ -115,6 +125,13 @@ export function ProfileForm({ user, lawyerProfile }: ProfileFormProps) {
     })
   }
 
+  const handleAvailabilityChange = (value: boolean) => {
+    setFormData({
+      ...formData,
+      isAvailable: value,
+    })
+  }
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setIsLoading(true)
@@ -127,6 +144,7 @@ export function ProfileForm({ user, lawyerProfile }: ProfileFormProps) {
           full_name: formData.fullName,
           phone: formData.phone,
           location: formData.location,
+          updated_at: new Date().toISOString(),
         })
         .eq("id", user.id)
 
@@ -141,6 +159,8 @@ export function ProfileForm({ user, lawyerProfile }: ProfileFormProps) {
             specialization: formData.specialization,
             experience: Number.parseInt(formData.experience) || 0,
             hourly_rate: Number.parseFloat(formData.hourlyRate) || 0,
+            is_available: formData.isAvailable,
+            updated_at: new Date().toISOString(),
           })
           .eq("user_id", user.id)
 
@@ -265,7 +285,7 @@ export function ProfileForm({ user, lawyerProfile }: ProfileFormProps) {
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="hourlyRate">Hourly Rate (USD)</Label>
+              <Label htmlFor="hourlyRate">Hourly Rate (₹)</Label>
               <Input
                 id="hourlyRate"
                 name="hourlyRate"
@@ -275,6 +295,38 @@ export function ProfileForm({ user, lawyerProfile }: ProfileFormProps) {
                 value={formData.hourlyRate}
                 onChange={handleChange}
               />
+            </div>
+          </div>
+
+          <div className="space-y-2">
+            <Label>Availability Status</Label>
+            <div className="flex space-x-4">
+              <div className="flex items-center">
+                <input
+                  type="radio"
+                  id="available"
+                  name="availability"
+                  className="mr-2"
+                  checked={formData.isAvailable === true}
+                  onChange={() => handleAvailabilityChange(true)}
+                />
+                <Label htmlFor="available" className="cursor-pointer">
+                  Available for new cases
+                </Label>
+              </div>
+              <div className="flex items-center">
+                <input
+                  type="radio"
+                  id="unavailable"
+                  name="availability"
+                  className="mr-2"
+                  checked={formData.isAvailable === false}
+                  onChange={() => handleAvailabilityChange(false)}
+                />
+                <Label htmlFor="unavailable" className="cursor-pointer">
+                  Not currently taking cases
+                </Label>
+              </div>
             </div>
           </div>
         </>

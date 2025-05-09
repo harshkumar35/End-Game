@@ -76,7 +76,7 @@ export function NewPostForm() {
       // Get user role
       const { data: userData, error: userError } = await supabase
         .from("users")
-        .select("role")
+        .select("role, full_name")
         .eq("id", user.id)
         .single()
 
@@ -91,6 +91,7 @@ export function NewPostForm() {
           content: formData.content,
           role: userData.role,
           tags: tags,
+          author_name: userData.full_name, // Add author name for easier display
         })
         .select()
 

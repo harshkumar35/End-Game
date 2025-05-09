@@ -8,8 +8,7 @@ export function createServerSupabaseClient() {
     cookies,
     options: {
       auth: {
-        // Set the site URL to your production domain
-        site: process.env.NEXT_PUBLIC_SITE_URL || "https://legalsathi.com",
+        site: "https://v0-legalsathi.vercel.app",
       },
     },
   })

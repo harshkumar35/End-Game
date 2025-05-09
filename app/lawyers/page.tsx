@@ -3,6 +3,7 @@ import { LawyerCard } from "@/components/lawyers/lawyer-card"
 import { SpecializationFilter } from "@/components/lawyers/specialization-filter"
 
 export const dynamic = "force-dynamic"
+export const revalidate = 0
 
 export default async function LawyersPage({
   searchParams,
@@ -21,6 +22,7 @@ export default async function LawyersPage({
         email,
         full_name,
         role,
+        avatar_url,
         lawyer_profiles (*)
       `,
       )

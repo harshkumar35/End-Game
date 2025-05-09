@@ -89,6 +89,8 @@ export default function RegisterPage() {
             specialization: "",
             experience: 0,
             hourly_rate: 0,
+            bio: `I am a lawyer specializing in various legal matters.`,
+            is_available: true,
           })
 
           if (lawyerProfileError) throw lawyerProfileError
