@@ -55,6 +55,22 @@ export default function RegisterPage() {
     setIsLoading(true)
 
     try {
+      // Check if email already exists
+      const { data: existingUsers, error: checkError } = await supabase
+        .from("users")
+        .select("id")
+        .eq("email", formData.email)
+        .limit(1)
+
+      if (checkError) throw checkError
+
+      // If email already exists, show friendly message
+      if (existingUsers && existingUsers.length > 0) {
+        setError("An account with this email already exists. Please login instead.")
+        setIsLoading(false)
+        return
+      }
+
       // Register the user with Supabase Auth
       const { data: authData, error: authError } = await supabase.auth.signUp({
         email: formData.email,
@@ -64,12 +80,20 @@ export default function RegisterPage() {
             full_name: formData.fullName,
             role: formData.role,
           },
-          // Use the deployed URL for email confirmation redirects
-          emailRedirectTo: `https://v0-legalsathi.vercel.app/auth/callback`,
+          // Explicitly set the redirect URL to the production domain
+          emailRedirectTo: "https://v0-legalsathi.vercel.app/auth/callback",
         },
       })
 
-      if (authError) throw authError
+      if (authError) {
+        // Check for duplicate email error
+        if (authError.message.includes("already registered")) {
+          setError("An account with this email already exists. Please login instead.")
+          setIsLoading(false)
+          return
+        }
+        throw authError
+      }
 
       // Insert the user into our users table
       if (authData.user) {
@@ -80,7 +104,15 @@ export default function RegisterPage() {
           role: formData.role,
         })
 
-        if (profileError) throw profileError
+        if (profileError) {
+          // Check for duplicate email error
+          if (profileError.message.includes("users_email_key")) {
+            setError("An account with this email already exists. Please login instead.")
+            setIsLoading(false)
+            return
+          }
+          throw profileError
+        }
 
         // If user is a lawyer, create a lawyer profile
         if (formData.role === "lawyer") {
@@ -114,7 +146,19 @@ export default function RegisterPage() {
         }
       }
     } catch (error: any) {
-      setError(error.message || "Something went wrong. Please try again.")
+      console.error("Registration error:", error)
+
+      // Check for duplicate email error in the error message
+      if (
+        error.message &&
+        (error.message.includes("already registered") ||
+          error.message.includes("users_email_key") ||
+          error.message.includes("duplicate key"))
+      ) {
+        setError("An account with this email already exists. Please login instead.")
+      } else {
+        setError(error.message || "Something went wrong. Please try again.")
+      }
     } finally {
       setIsLoading(false)
     }

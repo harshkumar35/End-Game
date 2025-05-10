@@ -15,6 +15,7 @@ export function createClientSupabaseClient() {
             persistSession: true,
             autoRefreshToken: true,
             detectSessionInUrl: true,
+            // Hardcode the site URL to ensure it's always used
             site: "https://v0-legalsathi.vercel.app",
           },
         },

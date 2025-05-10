@@ -8,6 +8,7 @@ export function createServerSupabaseClient() {
     cookies,
     options: {
       auth: {
+        // Hardcode the site URL to ensure it's always used
         site: "https://v0-legalsathi.vercel.app",
       },
     },
