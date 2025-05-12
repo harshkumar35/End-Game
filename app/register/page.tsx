@@ -11,8 +11,8 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { toast } from "@/components/ui/use-toast"
-import { Alert, AlertDescription } from "@/components/ui/alert"
-import { AlertCircle, Loader2 } from "lucide-react"
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
+import { AlertCircle, Loader2, Info } from "lucide-react"
 
 export default function RegisterPage() {
   const router = useRouter()
@@ -134,7 +134,7 @@ export default function RegisterPage() {
         if (!authData.user.email_confirmed_at) {
           toast({
             title: "Registration successful!",
-            description: "Please check your email to confirm your account.",
+            description: "Please check your email to confirm your account, then return to login.",
           })
         } else {
           // Redirect based on role
@@ -188,6 +188,20 @@ export default function RegisterPage() {
           <CardTitle className="text-2xl font-bold">Create an account</CardTitle>
           <CardDescription>Sign up to get started with LegalSathi</CardDescription>
         </CardHeader>
+
+        {/* Add the process information alert */}
+        <Alert className="mx-6 mb-4 bg-blue-50 dark:bg-blue-950 border-blue-200 dark:border-blue-800">
+          <Info className="h-4 w-4 text-blue-600 dark:text-blue-400" />
+          <AlertTitle className="text-blue-600 dark:text-blue-400 font-medium">Registration Process</AlertTitle>
+          <AlertDescription className="text-blue-600 dark:text-blue-400 text-sm">
+            1. Enter your details and create your account
+            <br />
+            2. Check your email and click the confirmation link
+            <br />
+            3. Return to LegalSathi and login with your credentials
+          </AlertDescription>
+        </Alert>
+
         <form onSubmit={handleSubmit}>
           <CardContent className="space-y-4">
             {error && (
@@ -199,7 +213,12 @@ export default function RegisterPage() {
 
             {success && (
               <Alert className="bg-primary/10 text-primary border-primary/20">
-                <AlertDescription>{success}</AlertDescription>
+                <AlertDescription>
+                  {success}{" "}
+                  <span className="font-semibold">
+                    Please click the confirmation link in your email, then return to login.
+                  </span>
+                </AlertDescription>
               </Alert>
             )}
 

@@ -10,8 +10,8 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { toast } from "@/components/ui/use-toast"
-import { Alert, AlertDescription } from "@/components/ui/alert"
-import { AlertCircle, Loader2 } from "lucide-react"
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
+import { AlertCircle, Loader2, Info } from "lucide-react"
 
 export default function LoginPage() {
   const router = useRouter()
@@ -71,7 +71,12 @@ export default function LoginPage() {
       router.push("/")
       router.refresh()
     } catch (error: any) {
-      setError(error.message || "Invalid email or password.")
+      // Check if the error is related to email confirmation
+      if (error.message.includes("Email not confirmed")) {
+        setError("Please confirm your email address before logging in. Check your inbox for the confirmation link.")
+      } else {
+        setError(error.message || "Invalid email or password.")
+      }
     } finally {
       setIsLoading(false)
     }
@@ -101,6 +106,16 @@ export default function LoginPage() {
           <CardTitle className="text-2xl font-bold">Log in</CardTitle>
           <CardDescription>Enter your credentials to access your account</CardDescription>
         </CardHeader>
+
+        {/* Add the login process information alert */}
+        <Alert className="mx-6 mb-4 bg-blue-50 dark:bg-blue-950 border-blue-200 dark:border-blue-800">
+          <Info className="h-4 w-4 text-blue-600 dark:text-blue-400" />
+          <AlertTitle className="text-blue-600 dark:text-blue-400 font-medium">Login Process</AlertTitle>
+          <AlertDescription className="text-blue-600 dark:text-blue-400 text-sm">
+            If you're a new user, please confirm your email by clicking the link sent to your inbox before logging in.
+          </AlertDescription>
+        </Alert>
+
         <form onSubmit={handleSubmit}>
           <CardContent className="space-y-4">
             {error && (
