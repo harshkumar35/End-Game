@@ -1,5 +1,6 @@
 import { createClientComponentClient } from "@supabase/auth-helpers-nextjs"
 import type { Database } from "@/lib/types/database.types"
+import { getSiteUrl } from "@/lib/utils/get-site-url"
 
 // Create a singleton instance of the Supabase client
 let supabaseClient: ReturnType<typeof createClientComponentClient<Database>> | null = null
@@ -15,8 +16,8 @@ export function createClientSupabaseClient() {
             persistSession: true,
             autoRefreshToken: true,
             detectSessionInUrl: true,
-            // Hardcode the site URL to ensure it's always used
-            site: "https://v0-legalsathi.vercel.app",
+            // Always use the production URL for auth redirects
+            site: getSiteUrl(),
           },
         },
       })

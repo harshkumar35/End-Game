@@ -36,7 +36,6 @@ export default function PostsPage({
         users:user_id (
           id,
           full_name,
-          avatar_url,
           role
         )
       `)
@@ -69,7 +68,17 @@ export default function PostsPage({
       if (error) {
         console.error("Error fetching posts:", error)
       } else {
-        setPosts(postsData || [])
+        // Process posts to add default avatar if needed
+        const processedPosts =
+          postsData?.map((post) => ({
+            ...post,
+            users: {
+              ...post.users,
+              avatar_url: null, // Add default null avatar_url
+            },
+          })) || []
+
+        setPosts(processedPosts)
 
         // Get all unique tags from posts for filter
         const tags: string[] = []
