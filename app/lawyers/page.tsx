@@ -13,33 +13,23 @@ export default async function LawyersPage({
   const supabase = createServerSupabaseClient()
 
   try {
-    // Build query to get only verified lawyers with lawyer profiles
+    console.log("Fetching lawyers...")
+
+    // Build query to get lawyers with role = 'lawyer'
     let query = supabase
       .from("users")
-      .select(
-        `
+      .select(`
         id,
         email,
         full_name,
         role,
-        avatar_url,
-        lawyer_profiles (*)
-      `,
-      )
+        avatar_url
+      `)
       .eq("role", "lawyer")
-      // Only get profiles where lawyer_profiles exist (using inner join)
-      .not("lawyer_profiles", "is", null)
 
-    // Apply specialization filter
-    if (searchParams.specialization && searchParams.specialization !== "all") {
-      query = query.eq("lawyer_profiles.specialization", searchParams.specialization)
-    }
-
-    // Apply search filter
+    // Apply search filter if provided
     if (searchParams.search) {
-      query = query.or(
-        `full_name.ilike.%${searchParams.search}%,lawyer_profiles.bio.ilike.%${searchParams.search}%,lawyer_profiles.specialization.ilike.%${searchParams.search}%`,
-      )
+      query = query.ilike("full_name", `%${searchParams.search}%`)
     }
 
     const { data: lawyers, error } = await query
@@ -49,16 +39,44 @@ export default async function LawyersPage({
       throw error
     }
 
+    console.log(`Found ${lawyers?.length || 0} lawyers`)
+
+    // Get lawyer profiles in a separate query to avoid the join issues
+    const { data: lawyerProfiles, error: profilesError } = await supabase.from("lawyer_profiles").select("*")
+
+    if (profilesError) {
+      console.error("Error fetching lawyer profiles:", profilesError)
+      // Continue without profiles rather than failing completely
+    }
+
+    // Create a map of profiles by user_id for easy lookup
+    const profilesMap = new Map()
+    lawyerProfiles?.forEach((profile) => {
+      profilesMap.set(profile.user_id, profile)
+    })
+
+    // Combine lawyers with their profiles
+    const lawyersWithProfiles =
+      lawyers?.map((lawyer) => ({
+        ...lawyer,
+        lawyer_profiles: profilesMap.has(lawyer.id) ? [profilesMap.get(lawyer.id)] : [],
+      })) || []
+
+    // Filter by specialization if needed
+    let filteredLawyers = lawyersWithProfiles
+    if (searchParams.specialization && searchParams.specialization !== "all") {
+      filteredLawyers = lawyersWithProfiles.filter(
+        (lawyer) =>
+          lawyer.lawyer_profiles?.length > 0 &&
+          lawyer.lawyer_profiles[0]?.specialization === searchParams.specialization,
+      )
+    }
+
     // Get all unique specializations for filter
     const uniqueSpecializations: string[] = []
-    lawyers?.forEach((lawyer) => {
-      if (
-        lawyer.lawyer_profiles &&
-        lawyer.lawyer_profiles.length > 0 &&
-        lawyer.lawyer_profiles[0].specialization &&
-        !uniqueSpecializations.includes(lawyer.lawyer_profiles[0].specialization)
-      ) {
-        uniqueSpecializations.push(lawyer.lawyer_profiles[0].specialization)
+    lawyerProfiles?.forEach((profile) => {
+      if (profile.specialization && !uniqueSpecializations.includes(profile.specialization)) {
+        uniqueSpecializations.push(profile.specialization)
       }
     })
 
@@ -73,9 +91,9 @@ export default async function LawyersPage({
           <SpecializationFilter searchParams={searchParams} uniqueSpecializations={uniqueSpecializations} />
         </div>
 
-        {lawyers?.length ? (
+        {filteredLawyers.length > 0 ? (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {lawyers.map((lawyer) => (
+            {filteredLawyers.map((lawyer) => (
               <LawyerCard key={lawyer.id} lawyer={lawyer} />
             ))}
           </div>
@@ -98,6 +116,11 @@ export default async function LawyersPage({
         <div className="text-center py-12">
           <h3 className="text-lg font-medium text-red-500">Error loading lawyers</h3>
           <p className="text-muted-foreground mt-1">There was an error loading the lawyers. Please try again later.</p>
+          <div className="mt-4">
+            <pre className="bg-muted p-4 rounded-md text-left overflow-auto max-h-[200px] text-xs">
+              {error instanceof Error ? error.message : "Unknown error"}
+            </pre>
+          </div>
         </div>
       </div>
     )
