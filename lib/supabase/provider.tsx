@@ -2,7 +2,7 @@
 
 import type React from "react"
 
-import { createContext, useContext, useEffect, useState } from "react"
+import { createContext, useContext, useEffect, useState, useRef } from "react"
 import { createClientSupabaseClient } from "./client"
 import type { SupabaseClient } from "@supabase/auth-helpers-nextjs"
 import type { User } from "@supabase/supabase-js"
@@ -22,30 +22,80 @@ const Context = createContext<SupabaseContext | undefined>(undefined)
 export function SupabaseProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<User | null>(null)
   const [isLoading, setIsLoading] = useState(true)
+  const refreshingRef = useRef(false)
+  const refreshAttempts = useRef(0)
+  const maxRefreshAttempts = 3
 
   // Use the singleton instance instead of creating a new one
   const supabase = supabaseClient
 
   useEffect(() => {
     let isMounted = true
+    let authListener: { subscription: { unsubscribe: () => void } } | null = null
 
     // Use a single auth session check instead of multiple calls
     const checkSession = async () => {
+      if (refreshingRef.current) return
+
       try {
+        refreshingRef.current = true
         const { data, error } = await supabase.auth.getSession()
 
         if (error) {
           console.error("Error getting auth session:", error)
-          if (isMounted) setUser(null)
+
+          // Handle refresh token error specifically
+          if (
+            error.message?.includes("refresh_token_already_used") ||
+            (error as any)?.code === "refresh_token_already_used"
+          ) {
+            refreshAttempts.current += 1
+
+            if (refreshAttempts.current <= maxRefreshAttempts) {
+              console.log(
+                `Refresh token error, clearing session. Attempt ${refreshAttempts.current}/${maxRefreshAttempts}`,
+              )
+
+              // Clear the session and cookies to force a fresh login
+              await supabase.auth.signOut({ scope: "local" })
+
+              if (isMounted) {
+                setUser(null)
+                setIsLoading(false)
+              }
+
+              // If we're on the client, redirect to login after a short delay
+              if (typeof window !== "undefined") {
+                setTimeout(() => {
+                  window.location.href = "/login?error=session_expired"
+                }, 500)
+              }
+            }
+          } else {
+            if (isMounted) {
+              setUser(null)
+              setIsLoading(false)
+            }
+          }
+
+          refreshingRef.current = false
           return
         }
 
-        if (isMounted) setUser(data.session?.user || null)
+        if (isMounted) {
+          setUser(data.session?.user || null)
+          setIsLoading(false)
+        }
+
+        refreshAttempts.current = 0
+        refreshingRef.current = false
       } catch (error) {
         console.error("Exception checking auth session:", error)
-        if (isMounted) setUser(null)
-      } finally {
-        if (isMounted) setIsLoading(false)
+        if (isMounted) {
+          setUser(null)
+          setIsLoading(false)
+        }
+        refreshingRef.current = false
       }
     }
 
@@ -55,13 +105,16 @@ export function SupabaseProvider({ children }: { children: React.ReactNode }) {
     }, 100)
 
     // Set up the auth state change listener with error handling
-    let authListener: { subscription: { unsubscribe: () => void } } | null = null
-
     try {
-      const { data, error } = supabase.auth.onAuthStateChange((event, session) => {
+      const { data, error } = supabase.auth.onAuthStateChange(async (event, session) => {
         if (error) {
           console.error("Auth state change error:", error)
           return
+        }
+
+        // Handle token refresh events specifically
+        if (event === "TOKEN_REFRESHED") {
+          console.log("Token was refreshed successfully")
         }
 
         if (isMounted) {
