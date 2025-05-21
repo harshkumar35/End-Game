@@ -3,7 +3,7 @@
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
+import { Avatar, AvatarFallback } from "@/components/ui/avatar"
 import { Star, CheckCircle, XCircle } from "lucide-react"
 import { Badge } from "@/components/ui/badge"
 
@@ -19,11 +19,7 @@ export function LawyerCard({ lawyer }: LawyerCardProps) {
       <CardHeader className="pb-0">
         <div className="flex items-start gap-4">
           <Avatar className="h-12 w-12 bg-primary/20">
-            {lawyer.avatar_url ? (
-              <AvatarImage src={lawyer.avatar_url || "/placeholder.svg"} alt={lawyer.full_name || "Lawyer"} />
-            ) : (
-              <AvatarFallback>{lawyer.full_name?.charAt(0) || "L"}</AvatarFallback>
-            )}
+            <AvatarFallback>{lawyer.full_name?.charAt(0) || "L"}</AvatarFallback>
           </Avatar>
           <div className="space-y-1">
             <CardTitle>{lawyer.full_name || "Anonymous Lawyer"}</CardTitle>

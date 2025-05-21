@@ -1,6 +1,9 @@
+"use client"
+
 import { createServerSupabaseClient } from "@/lib/supabase/server"
 import { LawyerCard } from "@/components/lawyers/lawyer-card"
 import { SpecializationFilter } from "@/components/lawyers/specialization-filter"
+import { Button } from "@/components/ui/button"
 
 export const dynamic = "force-dynamic"
 export const revalidate = 0
@@ -13,19 +16,34 @@ export default async function LawyersPage({
   const supabase = createServerSupabaseClient()
 
   try {
-    console.log("Fetching lawyers...")
+    // First, check if the users table exists and what columns it has
+    const { data: userColumns, error: columnsError } = await supabase
+      .rpc("get_table_columns", {
+        table_name: "users",
+      })
+      .catch(() => ({ data: null, error: new Error("Could not check table columns") }))
 
-    // Build query to get lawyers with role = 'lawyer'
-    let query = supabase
-      .from("users")
-      .select(`
+    // Default columns to select
+    let selectColumns = `
+      id,
+      email,
+      full_name,
+      role
+    `
+
+    // Add avatar_url if it exists
+    if (userColumns && Array.isArray(userColumns) && userColumns.includes("avatar_url")) {
+      selectColumns = `
         id,
         email,
         full_name,
         role,
         avatar_url
-      `)
-      .eq("role", "lawyer")
+      `
+    }
+
+    // Build query to get lawyers with role = 'lawyer'
+    let query = supabase.from("users").select(selectColumns).eq("role", "lawyer")
 
     // Apply search filter if provided
     if (searchParams.search) {
@@ -39,9 +57,22 @@ export default async function LawyersPage({
       throw error
     }
 
-    console.log(`Found ${lawyers?.length || 0} lawyers`)
+    // Fallback if the RPC method fails - try a simpler query
+    if (!lawyers) {
+      const { data: simpleLawyers, error: simpleError } = await supabase
+        .from("users")
+        .select("id, email, full_name, role")
+        .eq("role", "lawyer")
 
-    // Get lawyer profiles in a separate query to avoid the join issues
+      if (simpleError) {
+        console.error("Error with fallback lawyer query:", simpleError)
+        throw simpleError
+      }
+
+      const lawyers = simpleLawyers
+    }
+
+    // Get lawyer profiles in a separate query
     const { data: lawyerProfiles, error: profilesError } = await supabase.from("lawyer_profiles").select("*")
 
     if (profilesError) {
@@ -51,16 +82,22 @@ export default async function LawyersPage({
 
     // Create a map of profiles by user_id for easy lookup
     const profilesMap = new Map()
-    lawyerProfiles?.forEach((profile) => {
-      profilesMap.set(profile.user_id, profile)
-    })
+    if (lawyerProfiles && Array.isArray(lawyerProfiles)) {
+      lawyerProfiles.forEach((profile) => {
+        if (profile && profile.user_id) {
+          profilesMap.set(profile.user_id, profile)
+        }
+      })
+    }
 
     // Combine lawyers with their profiles
     const lawyersWithProfiles =
-      lawyers?.map((lawyer) => ({
-        ...lawyer,
-        lawyer_profiles: profilesMap.has(lawyer.id) ? [profilesMap.get(lawyer.id)] : [],
-      })) || []
+      lawyers && Array.isArray(lawyers)
+        ? lawyers.map((lawyer) => ({
+            ...lawyer,
+            lawyer_profiles: profilesMap.has(lawyer.id) ? [profilesMap.get(lawyer.id)] : [],
+          }))
+        : []
 
     // Filter by specialization if needed
     let filteredLawyers = lawyersWithProfiles
@@ -74,11 +111,13 @@ export default async function LawyersPage({
 
     // Get all unique specializations for filter
     const uniqueSpecializations: string[] = []
-    lawyerProfiles?.forEach((profile) => {
-      if (profile.specialization && !uniqueSpecializations.includes(profile.specialization)) {
-        uniqueSpecializations.push(profile.specialization)
-      }
-    })
+    if (lawyerProfiles && Array.isArray(lawyerProfiles)) {
+      lawyerProfiles.forEach((profile) => {
+        if (profile && profile.specialization && !uniqueSpecializations.includes(profile.specialization)) {
+          uniqueSpecializations.push(profile.specialization)
+        }
+      })
+    }
 
     return (
       <div className="container py-8">
@@ -91,7 +130,7 @@ export default async function LawyersPage({
           <SpecializationFilter searchParams={searchParams} uniqueSpecializations={uniqueSpecializations} />
         </div>
 
-        {filteredLawyers.length > 0 ? (
+        {filteredLawyers && filteredLawyers.length > 0 ? (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {filteredLawyers.map((lawyer) => (
               <LawyerCard key={lawyer.id} lawyer={lawyer} />
@@ -117,9 +156,9 @@ export default async function LawyersPage({
           <h3 className="text-lg font-medium text-red-500">Error loading lawyers</h3>
           <p className="text-muted-foreground mt-1">There was an error loading the lawyers. Please try again later.</p>
           <div className="mt-4">
-            <pre className="bg-muted p-4 rounded-md text-left overflow-auto max-h-[200px] text-xs">
-              {error instanceof Error ? error.message : "Unknown error"}
-            </pre>
+            <Button onClick={() => window.location.reload()} className="bg-primary hover:bg-primary/90">
+              Try Again
+            </Button>
           </div>
         </div>
       </div>

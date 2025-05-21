@@ -1,2 +1,12 @@
--- Add avatar_url column to users if it doesn't exist
-ALTER TABLE users ADD COLUMN IF NOT EXISTS avatar_url TEXT;
+-- Add avatar_url column to users table if it doesn't exist
+DO $$
+BEGIN
+    IF NOT EXISTS (
+        SELECT 1
+        FROM information_schema.columns
+        WHERE table_name = 'users'
+        AND column_name = 'avatar_url'
+    ) THEN
+        ALTER TABLE users ADD COLUMN avatar_url TEXT;
+    END IF;
+END $$;
