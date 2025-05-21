@@ -7,6 +7,7 @@ import { usePathname } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import { ThemeToggle } from "@/components/theme-toggle"
 import { useSupabase } from "@/lib/supabase/provider"
+import { useUser } from "@/lib/hooks/use-user"
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -31,7 +32,8 @@ import { gsap } from "gsap"
 
 export function Navbar() {
   const pathname = usePathname()
-  const { supabase, user, isLoading } = useSupabase()
+  const { supabase } = useSupabase()
+  const { user, isLoading } = useUser()
   const [isMenuOpen, setIsMenuOpen] = useState(false)
   const [isSigningOut, setIsSigningOut] = useState(false)
   const [scrolled, setScrolled] = useState(false)
@@ -121,7 +123,7 @@ export function Navbar() {
             <DropdownMenuTrigger asChild>
               <button
                 className={`halo-nav-link flex items-center gap-1 ${
-                  pathname.startsWith("/services") ||
+                  pathname?.startsWith("/services") ||
                   pathname === "/ai-assistant" ||
                   pathname === "/lawyers" ||
                   pathname === "/legal-news"
