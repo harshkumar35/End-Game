@@ -1,81 +1,82 @@
 "use client"
 
-import Link from "next/link"
-import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
-import { Avatar, AvatarFallback } from "@/components/ui/avatar"
-import { Star, CheckCircle, XCircle } from "lucide-react"
+import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
+import { useRouter } from "next/navigation"
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 
 interface LawyerCardProps {
   lawyer: any
 }
 
 export function LawyerCard({ lawyer }: LawyerCardProps) {
-  const lawyerProfile = lawyer.lawyer_profiles?.[0] || {}
-  const firstLetter = lawyer.full_name?.charAt(0) || "L"
+  const router = useRouter()
+  const profile = lawyer.lawyer_profiles?.[0] || {}
+
+  // Get initials for avatar fallback
+  const getInitials = (name: string) => {
+    return name
+      .split(" ")
+      .map((n) => n[0])
+      .join("")
+      .toUpperCase()
+      .substring(0, 2)
+  }
 
   return (
-    <Card className="overflow-hidden hover:shadow-lg transition-shadow">
-      <CardHeader className="pb-0">
-        <div className="flex items-start gap-4">
-          <Avatar className="h-12 w-12 bg-primary/20">
-            <AvatarFallback>{firstLetter}</AvatarFallback>
+    <Card className="overflow-hidden border border-white/10 transition-all duration-300 hover:border-primary/50 hover:shadow-md">
+      <CardHeader className="pb-2">
+        <div className="flex items-center gap-4">
+          <Avatar className="h-12 w-12">
+            <AvatarImage src={lawyer.avatar_url || "/placeholder.svg?height=40&width=40"} alt={lawyer.full_name} />
+            <AvatarFallback>{getInitials(lawyer.full_name || "User")}</AvatarFallback>
           </Avatar>
-          <div className="space-y-1">
-            <CardTitle>{lawyer.full_name || "Anonymous Lawyer"}</CardTitle>
-            <CardDescription>{lawyerProfile.specialization || "General Practice"}</CardDescription>
-            <div className="flex items-center">
-              {Array(5)
-                .fill(0)
-                .map((_, i) => (
-                  <Star key={i} className={`h-4 w-4 ${i < 4 ? "text-yellow-400 fill-yellow-400" : "text-gray-300"}`} />
-                ))}
-              <span className="ml-2 text-sm text-muted-foreground">(12 reviews)</span>
-            </div>
+          <div>
+            <CardTitle className="text-xl">{lawyer.full_name}</CardTitle>
+            {profile.specialization && <CardDescription>{profile.specialization}</CardDescription>}
           </div>
         </div>
       </CardHeader>
-      <CardContent className="pt-4">
+      <CardContent className="space-y-4 pb-4">
+        {profile.bio && <p className="text-sm text-muted-foreground line-clamp-3">{profile.bio}</p>}
+
         <div className="space-y-2">
-          <p className="line-clamp-3 text-sm text-muted-foreground">
-            {lawyerProfile.bio ||
-              "Experienced legal professional dedicated to helping clients navigate complex legal matters."}
-          </p>
-          <div className="flex items-center mt-2">
-            {lawyerProfile.is_available ? (
-              <Badge
-                variant="outline"
-                className="bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-100 flex items-center gap-1"
-              >
-                <CheckCircle className="h-3 w-3" />
-                Available for new cases
-              </Badge>
-            ) : (
-              <Badge
-                variant="outline"
-                className="bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-100 flex items-center gap-1"
-              >
-                <XCircle className="h-3 w-3" />
-                Not taking new cases
-              </Badge>
-            )}
-          </div>
-          <div className="mt-4 flex items-center justify-between text-sm">
-            <div>
-              <span className="font-medium">Experience:</span>{" "}
-              <span className="text-muted-foreground">{lawyerProfile.experience_years || 0} years</span>
+          {profile.experience_years && (
+            <div className="flex items-center justify-between text-sm">
+              <span className="text-muted-foreground">Experience</span>
+              <span>{profile.experience_years} years</span>
             </div>
-            <div>
-              <span className="font-medium">Rate:</span>{" "}
-              <span className="text-muted-foreground">₹{lawyerProfile.hourly_rate || 0}/hr</span>
+          )}
+
+          {profile.hourly_rate && (
+            <div className="flex items-center justify-between text-sm">
+              <span className="text-muted-foreground">Hourly Rate</span>
+              <span>₹{profile.hourly_rate}</span>
             </div>
-          </div>
+          )}
+
+          {profile.location && (
+            <div className="flex items-center justify-between text-sm">
+              <span className="text-muted-foreground">Location</span>
+              <span>{profile.location}</span>
+            </div>
+          )}
         </div>
+
+        {profile.languages && profile.languages.length > 0 && (
+          <div className="flex flex-wrap gap-1">
+            {profile.languages.map((language: string) => (
+              <Badge key={language} variant="outline" className="text-xs">
+                {language}
+              </Badge>
+            ))}
+          </div>
+        )}
       </CardContent>
-      <CardFooter className="border-t pt-4">
-        <Button asChild className="w-full gradient-bg">
-          <Link href={`/lawyers/${lawyer.id}`}>View Profile</Link>
+      <CardFooter className="pt-0">
+        <Button className="w-full" onClick={() => router.push(`/profile/${lawyer.id}`)}>
+          View Profile
         </Button>
       </CardFooter>
     </Card>

@@ -2,110 +2,90 @@
 
 import type React from "react"
 
-import { useRouter } from "next/navigation"
-import { useState, useTransition } from "react"
+import { useRouter, usePathname } from "next/navigation"
 import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { Search } from "lucide-react"
+import { useState, useEffect } from "react"
 
 interface SpecializationFilterProps {
-  searchParams: {
-    specialization?: string
-    search?: string
-  }
+  searchParams: { specialization?: string; search?: string }
   uniqueSpecializations: string[]
 }
 
 export function SpecializationFilter({ searchParams, uniqueSpecializations }: SpecializationFilterProps) {
   const router = useRouter()
-  const [searchValue, setSearchValue] = useState(searchParams.search || "")
-  const [isPending, startTransition] = useTransition()
+  const pathname = usePathname()
+  const [search, setSearch] = useState(searchParams.search || "")
 
-  const handleSearch = (e: React.FormEvent) => {
-    e.preventDefault()
-    const params = new URLSearchParams()
+  // Set initial search value from URL
+  useEffect(() => {
+    setSearch(searchParams.search || "")
+  }, [searchParams.search])
 
-    if (searchValue) {
-      params.set("search", searchValue)
-    }
-
-    if (searchParams.specialization) {
-      params.set("specialization", searchParams.specialization)
-    }
-
-    startTransition(() => {
-      router.push(`/lawyers?${params.toString()}`)
-    })
-  }
-
+  // Handle specialization filter change
   const handleSpecializationChange = (specialization: string) => {
     const params = new URLSearchParams()
-
-    if (searchParams.search) {
-      params.set("search", searchParams.search)
-    }
 
     if (specialization !== "all") {
       params.set("specialization", specialization)
     }
 
-    startTransition(() => {
-      router.push(`/lawyers?${params.toString()}`)
-    })
+    if (search) {
+      params.set("search", search)
+    }
+
+    router.push(`${pathname}?${params.toString()}`)
+  }
+
+  // Handle search form submission
+  const handleSearchSubmit = (e: React.FormEvent) => {
+    e.preventDefault()
+
+    const params = new URLSearchParams()
+
+    if (searchParams.specialization && searchParams.specialization !== "all") {
+      params.set("specialization", searchParams.specialization)
+    }
+
+    if (search) {
+      params.set("search", search)
+    }
+
+    router.push(`${pathname}?${params.toString()}`)
   }
 
   return (
-    <div className="flex flex-col md:flex-row gap-4 mb-6">
-      <form onSubmit={handleSearch} className="relative flex-1">
-        <Input
+    <div className="space-y-4">
+      <form onSubmit={handleSearchSubmit} className="flex gap-2">
+        <input
           type="text"
-          placeholder="Search lawyers..."
-          value={searchValue}
-          onChange={(e) => setSearchValue(e.target.value)}
-          className="w-full"
+          value={search}
+          onChange={(e) => setSearch(e.target.value)}
+          placeholder="Search by name..."
+          className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
         />
-        <Button type="submit" size="sm" className="absolute right-1 top-1 h-7" disabled={isPending}>
-          <Search className="h-4 w-4" />
-        </Button>
+        <Button type="submit">Search</Button>
       </form>
 
-      <div className="flex gap-2 overflow-x-auto pb-2">
+      <div className="flex flex-wrap gap-2">
         <Button
-          variant={!searchParams.specialization ? "default" : "outline"}
-          size="sm"
+          variant={!searchParams.specialization || searchParams.specialization === "all" ? "default" : "outline"}
           onClick={() => handleSpecializationChange("all")}
-          disabled={isPending}
+          className="text-sm"
         >
-          All
+          All Specializations
         </Button>
 
         {uniqueSpecializations.map((specialization) => (
           <Button
             key={specialization}
             variant={searchParams.specialization === specialization ? "default" : "outline"}
-            size="sm"
             onClick={() => handleSpecializationChange(specialization)}
-            disabled={isPending}
+            className="text-sm"
           >
             {specialization}
           </Button>
         ))}
       </div>
-
-      {(searchParams.search || searchParams.specialization) && (
-        <Button
-          variant="ghost"
-          size="sm"
-          onClick={() => {
-            startTransition(() => {
-              router.push("/lawyers")
-            })
-          }}
-          disabled={isPending}
-        >
-          Clear Filters
-        </Button>
-      )}
     </div>
   )
 }
