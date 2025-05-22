@@ -13,13 +13,14 @@ interface LawyerCardProps {
 
 export function LawyerCard({ lawyer }: LawyerCardProps) {
   const lawyerProfile = lawyer.lawyer_profiles?.[0] || {}
+  const firstLetter = lawyer.full_name?.charAt(0) || "L"
 
   return (
     <Card className="overflow-hidden hover:shadow-lg transition-shadow">
       <CardHeader className="pb-0">
         <div className="flex items-start gap-4">
           <Avatar className="h-12 w-12 bg-primary/20">
-            <AvatarFallback>{lawyer.full_name?.charAt(0) || "L"}</AvatarFallback>
+            <AvatarFallback>{firstLetter}</AvatarFallback>
           </Avatar>
           <div className="space-y-1">
             <CardTitle>{lawyer.full_name || "Anonymous Lawyer"}</CardTitle>
@@ -63,7 +64,7 @@ export function LawyerCard({ lawyer }: LawyerCardProps) {
           <div className="mt-4 flex items-center justify-between text-sm">
             <div>
               <span className="font-medium">Experience:</span>{" "}
-              <span className="text-muted-foreground">{lawyerProfile.experience || 0} years</span>
+              <span className="text-muted-foreground">{lawyerProfile.experience_years || 0} years</span>
             </div>
             <div>
               <span className="font-medium">Rate:</span>{" "}

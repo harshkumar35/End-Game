@@ -1,17 +1,28 @@
 "use client"
 
-import { useEffect, useState } from "react"
 import { LawyerCard } from "@/components/lawyers/lawyer-card"
 import { SpecializationFilter } from "@/components/lawyers/specialization-filter"
 import { Button } from "@/components/ui/button"
-import { useSupabase } from "@/lib/supabase/provider"
+import { createClient } from "@supabase/supabase-js"
+import type { Database } from "@/lib/types/database.types"
+import { useEffect, useState } from "react"
+
+export const dynamic = "force-dynamic"
+export const revalidate = 0
+
+// Create a simple Supabase client for client-side use
+function createSimpleSupabaseClient() {
+  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!
+  const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+
+  return createClient<Database>(supabaseUrl, supabaseKey)
+}
 
 export default function LawyersPage({
   searchParams = { specialization: undefined, search: undefined },
 }: {
   searchParams?: { specialization?: string; search?: string }
 }) {
-  const { supabase } = useSupabase()
   const [lawyers, setLawyers] = useState<any[]>([])
   const [lawyerProfiles, setLawyerProfiles] = useState<any[]>([])
   const [uniqueSpecializations, setUniqueSpecializations] = useState<string[]>([])
@@ -22,35 +33,26 @@ export default function LawyersPage({
     async function fetchData() {
       try {
         setIsLoading(true)
+        const supabase = createSimpleSupabaseClient()
 
-        // First, check if the users table exists and what columns it has
-        const { data: userColumns, error: columnsError } = await supabase
-          .rpc("get_table_columns", {
-            table_name: "users",
-          })
-          .catch(() => ({ data: null, error: new Error("Could not check table columns") }))
+        // First, check if the avatar_url column exists
+        const { data: columns, error: columnsError } = await supabase.rpc("get_table_columns", {
+          table_name: "users",
+        })
 
-        // Default columns to select
-        let selectColumns = `
-          id,
-          email,
-          full_name,
-          role
-        `
-
-        // Add avatar_url if it exists
-        if (userColumns && Array.isArray(userColumns) && userColumns.includes("avatar_url")) {
-          selectColumns = `
-            id,
-            email,
-            full_name,
-            role,
-            avatar_url
-          `
+        if (columnsError) {
+          console.error("Error checking columns:", columnsError)
+          // Continue without checking columns
         }
 
         // Build query to get lawyers with role = 'lawyer'
-        let query = supabase.from("users").select(selectColumns).eq("role", "lawyer")
+        // Only select avatar_url if it exists
+        const hasAvatarColumn = Array.isArray(columns) && columns.includes("avatar_url")
+
+        let query = supabase
+          .from("users")
+          .select(hasAvatarColumn ? `id, email, full_name, role, avatar_url` : `id, email, full_name, role`)
+          .eq("role", "lawyer")
 
         // Apply search filter if provided
         if (searchParams.search) {
@@ -93,7 +95,7 @@ export default function LawyersPage({
     }
 
     fetchData()
-  }, [supabase, searchParams.search])
+  }, [searchParams.search, searchParams.specialization])
 
   // Create a map of profiles by user_id for easy lookup
   const profilesMap = new Map()
@@ -181,6 +183,21 @@ export default function LawyersPage({
               ? "Try adjusting your filters"
               : "No lawyers are currently available"}
           </p>
+          {!searchParams.search && !searchParams.specialization && (
+            <div className="mt-4">
+              <p className="text-sm text-muted-foreground mb-4">
+                It looks like no lawyers have registered yet. You can:
+              </p>
+              <div className="flex gap-4 justify-center">
+                <Button asChild>
+                  <a href="/register?role=lawyer">Register as a Lawyer</a>
+                </Button>
+                <Button variant="outline" onClick={() => window.location.reload()}>
+                  Refresh Page
+                </Button>
+              </div>
+            </div>
+          )}
         </div>
       )}
     </div>
