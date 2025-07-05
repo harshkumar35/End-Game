@@ -1,56 +1,49 @@
-import { createServerComponentClient } from "@supabase/auth-helpers-nextjs"
+import { createServerComponentClient, createRouteHandlerClient } from "@supabase/auth-helpers-nextjs"
+import { createClient } from "@supabase/supabase-js"
+import { cookies } from "next/headers"
 import type { Database } from "@/lib/types/database.types"
-import { getSiteUrl } from "@/lib/utils/get-site-url"
 
-// This function is used in App Router (Server Components)
+// For server components
 export function createServerSupabaseClient() {
-  // Dynamically import cookies only when this function is called
-  // This prevents webpack from including it at build time
-  try {
-    // Only import cookies when needed (at runtime)
-    const { cookies } = require("next/headers")
-
-    return createServerComponentClient<Database>({
-      cookies,
-      options: {
-        auth: {
-          site: getSiteUrl(),
-        },
-      },
-    })
-  } catch (error) {
-    // If we're in an environment where next/headers is not available (pages directory)
-    console.error("Error creating server Supabase client:", error)
-    throw new Error(
-      "This function can only be used in a Server Component within the app directory. " +
-        "For pages directory, use createServerSideSupabaseClient instead.",
-    )
-  }
-}
-
-// This version works in pages directory (getServerSideProps)
-export function createServerSideSupabaseClient(context: { req: any; res: any }) {
-  const { createServerComponentClient } = require("@supabase/auth-helpers-nextjs")
+  const cookieStore = cookies()
 
   return createServerComponentClient<Database>({
-    cookies: () => {
-      const cookies = context.req.cookies || {}
-      return {
-        getAll: () =>
-          Object.entries(cookies).map(([name, value]) => ({
-            name,
-            value: value as string,
-          })),
-        get: (name: string) => ({
-          name,
-          value: cookies[name] as string,
-        }),
-      }
-    },
+    cookies: () => cookieStore,
     options: {
       auth: {
-        site: getSiteUrl(),
+        site: process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000",
       },
+    },
+  })
+}
+
+// For route handlers
+export function createRouteHandlerSupabaseClient() {
+  const cookieStore = cookies()
+
+  return createRouteHandlerClient<Database>({
+    cookies: () => cookieStore,
+    options: {
+      auth: {
+        site: process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000",
+      },
+    },
+  })
+}
+
+// Service role client for admin operations
+export function createServiceSupabaseClient() {
+  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!
+  const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY!
+
+  if (!supabaseUrl || !supabaseServiceKey) {
+    throw new Error("Missing Supabase environment variables")
+  }
+
+  return createClient<Database>(supabaseUrl, supabaseServiceKey, {
+    auth: {
+      autoRefreshToken: false,
+      persistSession: false,
     },
   })
 }

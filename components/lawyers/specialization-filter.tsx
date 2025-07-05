@@ -2,9 +2,12 @@
 
 import type React from "react"
 
-import { useRouter, usePathname } from "next/navigation"
+import { useState } from "react"
+import { useRouter, useSearchParams } from "next/navigation"
+import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
-import { useState, useEffect } from "react"
+import { Badge } from "@/components/ui/badge"
+import { Search, Filter, X } from "lucide-react"
 
 interface SpecializationFilterProps {
   searchParams: { specialization?: string; search?: string }
@@ -13,79 +16,102 @@ interface SpecializationFilterProps {
 
 export function SpecializationFilter({ searchParams, uniqueSpecializations }: SpecializationFilterProps) {
   const router = useRouter()
-  const pathname = usePathname()
-  const [search, setSearch] = useState(searchParams.search || "")
+  const currentSearchParams = useSearchParams()
+  const [searchTerm, setSearchTerm] = useState(searchParams.search || "")
 
-  // Set initial search value from URL
-  useEffect(() => {
-    setSearch(searchParams.search || "")
-  }, [searchParams.search])
+  const handleSearch = (e: React.FormEvent) => {
+    e.preventDefault()
+    const params = new URLSearchParams(currentSearchParams.toString())
 
-  // Handle specialization filter change
-  const handleSpecializationChange = (specialization: string) => {
-    const params = new URLSearchParams()
+    if (searchTerm.trim()) {
+      params.set("search", searchTerm.trim())
+    } else {
+      params.delete("search")
+    }
 
-    if (specialization !== "all") {
+    router.push(`/lawyers?${params.toString()}`)
+  }
+
+  const handleSpecializationFilter = (specialization: string) => {
+    const params = new URLSearchParams(currentSearchParams.toString())
+
+    if (specialization === "all") {
+      params.delete("specialization")
+    } else {
       params.set("specialization", specialization)
     }
 
-    if (search) {
-      params.set("search", search)
-    }
-
-    router.push(`${pathname}?${params.toString()}`)
+    router.push(`/lawyers?${params.toString()}`)
   }
 
-  // Handle search form submission
-  const handleSearchSubmit = (e: React.FormEvent) => {
-    e.preventDefault()
-
-    const params = new URLSearchParams()
-
-    if (searchParams.specialization && searchParams.specialization !== "all") {
-      params.set("specialization", searchParams.specialization)
-    }
-
-    if (search) {
-      params.set("search", search)
-    }
-
-    router.push(`${pathname}?${params.toString()}`)
+  const clearFilters = () => {
+    setSearchTerm("")
+    router.push("/lawyers")
   }
+
+  const hasActiveFilters = searchParams.search || searchParams.specialization
 
   return (
     <div className="space-y-4">
-      <form onSubmit={handleSearchSubmit} className="flex gap-2">
-        <input
-          type="text"
-          value={search}
-          onChange={(e) => setSearch(e.target.value)}
-          placeholder="Search by name..."
-          className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
-        />
-        <Button type="submit">Search</Button>
+      {/* Search Bar */}
+      <form onSubmit={handleSearch} className="flex gap-2">
+        <div className="relative flex-1">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+          <Input
+            placeholder="Search lawyers by name..."
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            className="pl-10"
+          />
+        </div>
+        <Button type="submit" variant="outline">
+          <Filter className="h-4 w-4 mr-2" />
+          Search
+        </Button>
+        {hasActiveFilters && (
+          <Button type="button" variant="ghost" onClick={clearFilters}>
+            <X className="h-4 w-4 mr-2" />
+            Clear
+          </Button>
+        )}
       </form>
 
-      <div className="flex flex-wrap gap-2">
-        <Button
-          variant={!searchParams.specialization || searchParams.specialization === "all" ? "default" : "outline"}
-          onClick={() => handleSpecializationChange("all")}
-          className="text-sm"
-        >
-          All Specializations
-        </Button>
+      {/* Specialization Filters */}
+      {uniqueSpecializations.length > 0 && (
+        <div className="space-y-2">
+          <h3 className="text-sm font-medium text-muted-foreground">Filter by Specialization:</h3>
+          <div className="flex flex-wrap gap-2">
+            <Badge
+              variant={!searchParams.specialization || searchParams.specialization === "all" ? "default" : "outline"}
+              className="cursor-pointer hover:bg-primary/80"
+              onClick={() => handleSpecializationFilter("all")}
+            >
+              All Specializations
+            </Badge>
+            {uniqueSpecializations.map((specialization) => (
+              <Badge
+                key={specialization}
+                variant={searchParams.specialization === specialization ? "default" : "outline"}
+                className="cursor-pointer hover:bg-primary/80"
+                onClick={() => handleSpecializationFilter(specialization)}
+              >
+                {specialization}
+              </Badge>
+            ))}
+          </div>
+        </div>
+      )}
 
-        {uniqueSpecializations.map((specialization) => (
-          <Button
-            key={specialization}
-            variant={searchParams.specialization === specialization ? "default" : "outline"}
-            onClick={() => handleSpecializationChange(specialization)}
-            className="text-sm"
-          >
-            {specialization}
-          </Button>
-        ))}
-      </div>
+      {/* Active Filters Display */}
+      {hasActiveFilters && (
+        <div className="flex items-center gap-2 text-sm text-muted-foreground">
+          <span>Active filters:</span>
+          {searchParams.search && <Badge variant="secondary">Search: "{searchParams.search}"</Badge>}
+          {searchParams.specialization && searchParams.specialization !== "all" && (
+            <Badge variant="secondary">Specialization: {searchParams.specialization}</Badge>
+          )}
+        </div>
+      )}
     </div>
   )
 }

@@ -1,36 +1,36 @@
 import { LawyerCard } from "@/components/lawyers/lawyer-card"
 import { SpecializationFilter } from "@/components/lawyers/specialization-filter"
 import { Button } from "@/components/ui/button"
-import { createClient } from "@supabase/supabase-js"
-import type { Database } from "@/lib/types/database.types"
+import { createServiceSupabaseClient } from "@/lib/supabase/server"
 
 export const dynamic = "force-dynamic"
-
-// Create a simple Supabase client for server-side use
-function createSimpleSupabaseClient() {
-  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!
-  const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-
-  return createClient<Database>(supabaseUrl, supabaseKey)
-}
 
 export default async function LawyersPage({
   searchParams,
 }: {
   searchParams: { specialization?: string; search?: string }
 }) {
-  const supabase = createSimpleSupabaseClient()
+  const supabase = createServiceSupabaseClient()
 
   try {
     // Build query to get lawyers with role = 'lawyer'
-    let query = supabase.from("users").select(`id, email, full_name, role`).eq("role", "lawyer")
+    let query = supabase
+      .from("users")
+      .select(`
+        id,
+        email,
+        full_name,
+        role,
+        created_at
+      `)
+      .eq("role", "lawyer")
 
     // Apply search filter if provided
     if (searchParams.search) {
       query = query.ilike("full_name", `%${searchParams.search}%`)
     }
 
-    const { data: lawyers, error } = await query
+    const { data: lawyers, error } = await query.order("created_at", { ascending: false })
 
     if (error) {
       console.error("Error fetching lawyers:", error)
@@ -38,7 +38,10 @@ export default async function LawyersPage({
     }
 
     // Get lawyer profiles in a separate query
-    const { data: lawyerProfiles, error: profilesError } = await supabase.from("lawyer_profiles").select("*")
+    const { data: lawyerProfiles, error: profilesError } = await supabase
+      .from("lawyer_profiles")
+      .select("*")
+      .order("created_at", { ascending: false })
 
     if (profilesError) {
       console.error("Error fetching lawyer profiles:", profilesError)

@@ -1,65 +1,101 @@
 "use client"
 
 import type React from "react"
-
 import { createContext, useContext, useEffect, useState } from "react"
-import { createClientComponentClient, type User } from "@supabase/auth-helpers-nextjs"
+import { createClientComponentClient } from "@supabase/auth-helpers-nextjs"
+import { useRouter } from "next/navigation"
+import type { Session, User } from "@supabase/supabase-js"
 import type { Database } from "@/lib/types/database.types"
 
-type SupabaseContext = {
+type SupabaseContextType = {
   supabase: ReturnType<typeof createClientComponentClient<Database>>
+  session: Session | null
   user: User | null
   isLoading: boolean
 }
 
-const Context = createContext<SupabaseContext | undefined>(undefined)
+const SupabaseContext = createContext<SupabaseContextType | undefined>(undefined)
 
 export function SupabaseProvider({ children }: { children: React.ReactNode }) {
+  const [session, setSession] = useState<Session | null>(null)
   const [user, setUser] = useState<User | null>(null)
   const [isLoading, setIsLoading] = useState(true)
-  const [supabaseClient] = useState(() => createClientComponentClient<Database>())
+  const router = useRouter()
+
+  const supabase = createClientComponentClient<Database>()
 
   useEffect(() => {
-    const getUser = async () => {
+    const getSession = async () => {
       try {
         const {
-          data: { session },
+          data: { session: activeSession },
           error,
-        } = await supabaseClient.auth.getSession()
+        } = await supabase.auth.getSession()
 
         if (error) {
           console.error("Error getting session:", error)
+          setSession(null)
           setUser(null)
-        } else {
-          setUser(session?.user || null)
+          return
         }
+
+        setSession(activeSession)
+        setUser(activeSession?.user || null)
       } catch (error) {
         console.error("Unexpected error during getSession:", error)
+        setSession(null)
         setUser(null)
       } finally {
         setIsLoading(false)
       }
     }
 
-    getUser()
+    getSession()
 
     const {
       data: { subscription },
-    } = supabaseClient.auth.onAuthStateChange((_event, session) => {
-      setUser(session?.user || null)
-      setIsLoading(false)
+    } = supabase.auth.onAuthStateChange(async (event, newSession) => {
+      console.log("Auth state changed:", event, newSession?.user?.email)
+
+      setSession(newSession)
+      setUser(newSession?.user || null)
+
+      if (event === "SIGNED_IN" && newSession?.user) {
+        // Ensure user profile exists
+        const { data: existingUser } = await supabase.from("users").select("id").eq("id", newSession.user.id).single()
+
+        if (!existingUser) {
+          // Create user profile if it doesn't exist
+          const { error: profileError } = await supabase.from("users").insert({
+            id: newSession.user.id,
+            email: newSession.user.email!,
+            full_name: newSession.user.user_metadata?.full_name || newSession.user.email!.split("@")[0],
+            role: newSession.user.user_metadata?.role || "client",
+          })
+
+          if (profileError) {
+            console.error("Error creating user profile:", profileError)
+          }
+        }
+      }
+
+      if (event === "SIGNED_OUT") {
+        router.push("/")
+      }
+
+      router.refresh()
     })
 
     return () => {
       subscription.unsubscribe()
     }
-  }, [supabaseClient])
+  }, [supabase, router])
 
-  return <Context.Provider value={{ supabase: supabaseClient, user, isLoading }}>{children}</Context.Provider>
+  return <SupabaseContext.Provider value={{ supabase, session, user, isLoading }}>{children}</SupabaseContext.Provider>
 }
 
 export function useSupabase() {
-  const context = useContext(Context)
+  const context = useContext(SupabaseContext)
   if (context === undefined) {
     throw new Error("useSupabase must be used within a SupabaseProvider")
   }

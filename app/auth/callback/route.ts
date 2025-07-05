@@ -1,75 +1,51 @@
 import { createRouteHandlerClient } from "@supabase/auth-helpers-nextjs"
 import { cookies } from "next/headers"
-import { NextResponse } from "next/server"
-
-import type { NextRequest } from "next/server"
+import { type NextRequest, NextResponse } from "next/server"
 import type { Database } from "@/lib/types/database.types"
 
 export async function GET(request: NextRequest) {
   const requestUrl = new URL(request.url)
   const code = requestUrl.searchParams.get("code")
-  const next = requestUrl.searchParams.get("next") || "/dashboard"
 
   if (code) {
     const cookieStore = cookies()
-    const supabase = createRouteHandlerClient<Database>({ cookies: () => cookieStore })
+    const supabase = createRouteHandlerClient<Database>({
+      cookies: () => cookieStore,
+    })
 
-    // Exchange the code for a session
-    const { data, error } = await supabase.auth.exchangeCodeForSession(code)
+    try {
+      const { data, error } = await supabase.auth.exchangeCodeForSession(code)
 
-    if (error) {
-      console.error("Error exchanging code for session:", error)
-      return NextResponse.redirect(
-        new URL(`/login?error=${encodeURIComponent(error.message)}`, "https://v0-legalsathi.vercel.app"),
-      )
-    }
-
-    // Check if this is a new user (from social login)
-    if (data?.user && data.session) {
-      // Get user metadata
-      const { data: userData, error: userError } = await supabase
-        .from("users")
-        .select("*")
-        .eq("id", data.user.id)
-        .single()
-
-      if (userError && userError.code !== "PGRST116") {
-        // PGRST116 is "no rows returned" error
-        console.error("Error fetching user data:", userError)
+      if (error) {
+        console.error("Error exchanging code for session:", error)
+        return NextResponse.redirect(`${requestUrl.origin}/login?error=auth_callback_error`)
       }
 
-      // If user doesn't exist in our users table, create a new record
-      if (!userData) {
-        // Get user details from auth metadata
-        const fullName =
-          data.user.user_metadata.full_name ||
-          data.user.user_metadata.name ||
-          `${data.user.user_metadata.given_name || ""} ${data.user.user_metadata.family_name || ""}`.trim() ||
-          data.user.email?.split("@")[0] ||
-          "User"
+      if (data.user) {
+        // Ensure user profile exists
+        const { data: existingUser } = await supabase.from("users").select("id").eq("id", data.user.id).single()
 
-        const role = data.user.user_metadata.role || "client"
+        if (!existingUser) {
+          // Create user profile
+          const { error: profileError } = await supabase.from("users").insert({
+            id: data.user.id,
+            email: data.user.email!,
+            full_name: data.user.user_metadata?.full_name || data.user.email!.split("@")[0],
+            role: data.user.user_metadata?.role || "client",
+          })
 
-        // Insert the user into our users table
-        const { error: insertError } = await supabase.from("users").insert({
-          id: data.user.id,
-          email: data.user.email,
-          full_name: fullName,
-          role: role,
-          avatar_url: data.user.user_metadata.avatar_url || data.user.user_metadata.picture || null,
-        })
+          if (profileError) {
+            console.error("Error creating user profile:", profileError)
+          }
 
-        if (insertError) {
-          console.error("Error creating user profile:", insertError)
-        } else {
-          // If user is a lawyer, create a lawyer profile
-          if (role === "lawyer") {
+          // If user is a lawyer, create lawyer profile
+          if (data.user.user_metadata?.role === "lawyer") {
             const { error: lawyerProfileError } = await supabase.from("lawyer_profiles").insert({
               user_id: data.user.id,
-              specialization: "",
-              experience: 0,
+              specialization: "General Practice",
+              experience_years: 0,
               hourly_rate: 0,
-              bio: `I am a lawyer specializing in various legal matters.`,
+              bio: "I am a lawyer specializing in various legal matters.",
               is_available: true,
             })
 
@@ -79,9 +55,14 @@ export async function GET(request: NextRequest) {
           }
         }
       }
+
+      return NextResponse.redirect(`${requestUrl.origin}/dashboard`)
+    } catch (error) {
+      console.error("Unexpected error in auth callback:", error)
+      return NextResponse.redirect(`${requestUrl.origin}/login?error=callback_error`)
     }
   }
 
-  // URL to redirect to after sign in process completes
-  return NextResponse.redirect(new URL(next, "https://v0-legalsathi.vercel.app"))
+  // Return the user to an error page with instructions
+  return NextResponse.redirect(`${requestUrl.origin}/login?error=no_code_provided`)
 }
