@@ -1,42 +1,34 @@
+"use client"
+
 import { createClientComponentClient } from "@supabase/auth-helpers-nextjs"
 import { createClient } from "@supabase/supabase-js"
 import type { Database } from "@/lib/types/database.types"
 
-// Create a singleton instance of the Supabase client
-let supabaseClient: ReturnType<typeof createClientComponentClient<Database>> | null = null
+/**
+ * Client-side Supabase clients for different use cases:
+ * 1. Component client for React components
+ * 2. Browser client for direct usage
+ * 3. Service client for admin operations
+ */
 
-export function createClientSupabaseClient() {
-  if (!supabaseClient) {
-    try {
-      supabaseClient = createClientComponentClient<Database>({
-        options: {
-          auth: {
-            persistSession: true,
-            autoRefreshToken: true,
-            detectSessionInUrl: true,
-            flowType: "pkce",
-          },
-          global: {
-            headers: {
-              "x-client-info": `legalsathi/${process.env.NEXT_PUBLIC_APP_VERSION || "1.0.0"}`,
-            },
-          },
-          realtime: {
-            reconnectMaxRetries: 3,
-          },
-        },
-      })
-    } catch (error) {
-      console.error("Error creating Supabase client:", error)
-      // Create a fallback client with minimal functionality
-      supabaseClient = createClientComponentClient<Database>()
-    }
+/* -------------------------------------------------------------------------- */
+/*  1. Component Client (for React Components)                                */
+/* -------------------------------------------------------------------------- */
+
+let componentClient: ReturnType<typeof createClientComponentClient<Database>> | null = null
+
+export function getSupabaseClient() {
+  if (!componentClient) {
+    componentClient = createClientComponentClient<Database>()
   }
-  return supabaseClient
+  return componentClient
 }
 
-// For direct client creation with explicit credentials
-export function createSupabaseClient() {
+/* -------------------------------------------------------------------------- */
+/*  2. Direct Browser Client                                                  */
+/* -------------------------------------------------------------------------- */
+
+export function createBrowserClient() {
   const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!
   const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
 
@@ -51,10 +43,21 @@ export function createSupabaseClient() {
       detectSessionInUrl: true,
       flowType: "pkce",
     },
+    global: {
+      headers: {
+        "x-client-info": `legalsathi/${process.env.NEXT_PUBLIC_APP_VERSION || "1.0.0"}`,
+      },
+    },
+    realtime: {
+      reconnectMaxRetries: 3,
+    },
   })
 }
 
-// Service client for admin operations (client-side)
+/* -------------------------------------------------------------------------- */
+/*  3. Service Client (Admin Operations)                                      */
+/* -------------------------------------------------------------------------- */
+
 export function createServiceClient() {
   const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!
   const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY!
@@ -70,3 +73,11 @@ export function createServiceClient() {
     },
   })
 }
+
+/* -------------------------------------------------------------------------- */
+/*  4. Legacy Support                                                         */
+/* -------------------------------------------------------------------------- */
+
+// For backward compatibility
+export const createClientSupabaseClient = getSupabaseClient
+export const createSupabaseClient = createBrowserClient

@@ -1,6 +1,6 @@
 "use client"
 
-import type React from "react"
+import type { ReactNode } from "react"
 import { createContext, useContext, useEffect, useState } from "react"
 import { createClientComponentClient } from "@supabase/auth-helpers-nextjs"
 import { useRouter } from "next/navigation"
@@ -16,13 +16,12 @@ type SupabaseContextType = {
 
 const SupabaseContext = createContext<SupabaseContextType | undefined>(undefined)
 
-export function SupabaseProvider({ children }: { children: React.ReactNode }) {
+export function SupabaseProvider({ children }: { children: ReactNode }) {
+  const [supabase] = useState(() => createClientComponentClient<Database>())
   const [session, setSession] = useState<Session | null>(null)
   const [user, setUser] = useState<User | null>(null)
   const [isLoading, setIsLoading] = useState(true)
   const router = useRouter()
-
-  const supabase = createClientComponentClient<Database>()
 
   useEffect(() => {
     const getSession = async () => {
@@ -62,20 +61,24 @@ export function SupabaseProvider({ children }: { children: React.ReactNode }) {
 
       if (event === "SIGNED_IN" && newSession?.user) {
         // Ensure user profile exists
-        const { data: existingUser } = await supabase.from("users").select("id").eq("id", newSession.user.id).single()
+        try {
+          const { data: existingUser } = await supabase.from("users").select("id").eq("id", newSession.user.id).single()
 
-        if (!existingUser) {
-          // Create user profile if it doesn't exist
-          const { error: profileError } = await supabase.from("users").insert({
-            id: newSession.user.id,
-            email: newSession.user.email!,
-            full_name: newSession.user.user_metadata?.full_name || newSession.user.email!.split("@")[0],
-            role: newSession.user.user_metadata?.role || "client",
-          })
+          if (!existingUser) {
+            // Create user profile if it doesn't exist
+            const { error: profileError } = await supabase.from("users").insert({
+              id: newSession.user.id,
+              email: newSession.user.email!,
+              full_name: newSession.user.user_metadata?.full_name || newSession.user.email!.split("@")[0],
+              role: newSession.user.user_metadata?.role || "client",
+            })
 
-          if (profileError) {
-            console.error("Error creating user profile:", profileError)
+            if (profileError) {
+              console.error("Error creating user profile:", profileError)
+            }
           }
+        } catch (error) {
+          console.error("Error checking/creating user profile:", error)
         }
       }
 
