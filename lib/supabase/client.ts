@@ -15,11 +15,17 @@ import type { Database } from "@/lib/types/database.types"
 /*  1. Component Client (for React Components)                                */
 /* -------------------------------------------------------------------------- */
 
+export function createClientSupabaseClient() {
+  return createClientComponentClient<Database>()
+}
+
+export const supabase = createClientSupabaseClient()
+
 let componentClient: ReturnType<typeof createClientComponentClient<Database>> | null = null
 
 export function getSupabaseClient() {
   if (!componentClient) {
-    componentClient = createClientComponentClient<Database>()
+    componentClient = createClientSupabaseClient()
   }
   return componentClient
 }
@@ -79,5 +85,4 @@ export function createServiceClient() {
 /* -------------------------------------------------------------------------- */
 
 // For backward compatibility
-export const createClientSupabaseClient = getSupabaseClient
 export const createSupabaseClient = createBrowserClient

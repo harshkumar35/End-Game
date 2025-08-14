@@ -20,65 +20,124 @@ export default async function ProfilePage() {
     redirect("/login?redirect=/profile")
   }
 
-  // Get user data
-  const { data: userData, error: userError } = await supabase
-    .from("users")
-    .select("*")
-    .eq("id", session.user.id)
-    .single()
+  console.log("Loading profile for user:", session.user.id)
 
-  if (userError) {
-    console.error("Error fetching user data:", userError)
-    // Instead of failing, create a new user record if it doesn't exist
-    const { data: newUser, error: createError } = await supabase
-      .from("users")
-      .insert({
-        id: session.user.id,
-        email: session.user.email || "",
-        full_name: session.user.user_metadata?.full_name || "User",
-        role: session.user.user_metadata?.role || "client",
-      })
-      .select()
-      .single()
+  // Get user data with better error handling
+  let userData = null
+  try {
+    const { data: user, error: userError } = await supabase.from("users").select("*").eq("id", session.user.id).single()
 
-    if (createError) {
-      console.error("Error creating user:", createError)
-    }
-  }
+    if (userError) {
+      console.error("Error fetching user data:", userError)
 
-  // Get lawyer profile data if user is a lawyer
-  let lawyerProfile = null
-  if (userData?.role === "lawyer") {
-    const { data: profile, error: profileError } = await supabase
-      .from("lawyer_profiles")
-      .select("*")
-      .eq("user_id", session.user.id)
-      .single()
-
-    if (profileError) {
-      console.error("Error fetching lawyer profile:", profileError)
-      // Create a lawyer profile if it doesn't exist
-      const { data: newProfile, error: createProfileError } = await supabase
-        .from("lawyer_profiles")
+      // Create user if doesn't exist
+      const { data: newUser, error: createError } = await supabase
+        .from("users")
         .insert({
-          user_id: session.user.id,
-          specialization: "",
-          experience: 0,
-          hourly_rate: 0,
-          bio: "",
+          id: session.user.id,
+          email: session.user.email || "",
+          full_name: session.user.user_metadata?.full_name || "User",
+          role: session.user.user_metadata?.role || "client",
+          created_at: new Date().toISOString(),
+          updated_at: new Date().toISOString(),
         })
         .select()
         .single()
 
-      if (createProfileError) {
-        console.error("Error creating lawyer profile:", createProfileError)
+      if (createError) {
+        console.error("Error creating user:", createError)
+        userData = {
+          id: session.user.id,
+          email: session.user.email || "",
+          full_name: session.user.user_metadata?.full_name || "User",
+          role: session.user.user_metadata?.role || "client",
+        }
       } else {
-        lawyerProfile = newProfile
+        userData = newUser
       }
     } else {
-      lawyerProfile = profile
+      userData = user
+    }
+  } catch (error) {
+    console.error("Unexpected error:", error)
+    userData = {
+      id: session.user.id,
+      email: session.user.email || "",
+      full_name: session.user.user_metadata?.full_name || "User",
+      role: session.user.user_metadata?.role || "client",
     }
   }
+
+  console.log("User data loaded:", userData)
+
+  // Get lawyer profile data if user is a lawyer
+  let lawyerProfile = null
+  if (userData?.role === "lawyer") {
+    try {
+      const { data: profile, error: profileError } = await supabase
+        .from("lawyer_profiles")
+        .select("*")
+        .eq("user_id", session.user.id)
+        .single()
+
+      if (profileError) {
+        console.error("Error fetching lawyer profile:", profileError)
+
+        // Create lawyer profile if doesn't exist
+        const { data: newProfile, error: createProfileError } = await supabase
+          .from("lawyer_profiles")
+          .insert({
+            user_id: session.user.id,
+            specialization: "",
+            experience: 0,
+            hourly_rate: 0,
+            bio: "",
+            is_available: true,
+            languages: "",
+            education: "",
+            certifications: "",
+            created_at: new Date().toISOString(),
+            updated_at: new Date().toISOString(),
+          })
+          .select()
+          .single()
+
+        if (createProfileError) {
+          console.error("Error creating lawyer profile:", createProfileError)
+          lawyerProfile = {
+            user_id: session.user.id,
+            specialization: "",
+            experience: 0,
+            hourly_rate: 0,
+            bio: "",
+            is_available: true,
+            languages: "",
+            education: "",
+            certifications: "",
+          }
+        } else {
+          lawyerProfile = newProfile
+        }
+      } else {
+        lawyerProfile = profile
+      }
+    } catch (error) {
+      console.error("Unexpected error fetching lawyer profile:", error)
+      lawyerProfile = {
+        user_id: session.user.id,
+        specialization: "",
+        experience: 0,
+        hourly_rate: 0,
+        bio: "",
+        is_available: true,
+        languages: "",
+        education: "",
+        certifications: "",
+      }
+    }
+  }
+
+  console.log("Lawyer profile loaded:", lawyerProfile)
 
   return (
     <div className="container py-10">
@@ -94,9 +153,7 @@ export default async function ProfilePage() {
         </TabsList>
 
         <TabsContent value="about" className="mt-6">
-          <Card className="p-6">
-            <ProfileForm user={userData} lawyerProfile={lawyerProfile} />
-          </Card>
+          <ProfileForm user={userData} lawyerProfile={lawyerProfile} />
         </TabsContent>
 
         <TabsContent value="experience" className="mt-6">

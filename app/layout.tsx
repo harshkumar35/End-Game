@@ -15,7 +15,7 @@ const inter = Inter({ subsets: ["latin"] })
 export const metadata: Metadata = {
   title: "LegalSathi - Connect with Legal Professionals",
   description: "Find and connect with the best legal professionals for your needs.",
-    generator: 'v0.dev'
+    generator: 'v0.app'
 }
 
 export default function RootLayout({

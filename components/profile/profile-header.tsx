@@ -1,19 +1,9 @@
 "use client"
 
-import type React from "react"
-
-import { useState, useRef } from "react"
-import { useRouter } from "next/navigation"
-import { Camera, Pencil, Loader2 } from "lucide-react"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
-import { Button } from "@/components/ui/button"
+import { Badge } from "@/components/ui/badge"
 import { Card, CardContent } from "@/components/ui/card"
-import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
-import { useSupabase } from "@/lib/supabase/provider"
-import { toast } from "@/components/ui/use-toast"
-import { uploadProfileImage } from "@/lib/utils/upload-image"
-import { useEffect } from "react"
+import { MapPin, Phone, Mail, Briefcase, Clock, Star, CheckCircle, XCircle } from "lucide-react"
 
 interface ProfileHeaderProps {
   user: any
@@ -21,170 +11,133 @@ interface ProfileHeaderProps {
 }
 
 export function ProfileHeader({ user, lawyerProfile }: ProfileHeaderProps) {
-  const router = useRouter()
-  const { supabase } = useSupabase()
-  const [isEditing, setIsEditing] = useState(false)
-  const [fullName, setFullName] = useState(user?.full_name || "")
-  const [headline, setHeadline] = useState(lawyerProfile?.headline || "")
-  const [isLoading, setIsLoading] = useState(false)
-  const [avatarUrl, setAvatarUrl] = useState(user?.avatar_url || "")
-  const fileInputRef = useRef<HTMLInputElement>(null)
-
-  useEffect(() => {
-    if (user && user.avatar_url) {
-      setAvatarUrl(user.avatar_url)
-    }
-  }, [user])
-
-  const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0]
-    if (!file) return
-
-    setIsLoading(true)
-    try {
-      const imageUrl = await uploadProfileImage(file, user.id)
-
-      if (imageUrl) {
-        // Update the user record with the new avatar URL
-        const { error } = await supabase.from("users").update({ avatar_url: imageUrl }).eq("id", user.id)
-
-        if (error) throw error
-
-        setAvatarUrl(imageUrl)
-        toast({
-          title: "Profile picture updated",
-          description: "Your profile picture has been updated successfully.",
-        })
-
-        router.refresh()
-      }
-    } catch (error: any) {
-      console.error("Error updating profile picture:", error)
-      toast({
-        title: "Error",
-        description: error.message || "Failed to update profile picture. Please try again.",
-        variant: "destructive",
-      })
-    } finally {
-      setIsLoading(false)
-    }
+  const getInitials = (name: string) => {
+    return name
+      .split(" ")
+      .map((n) => n[0])
+      .join("")
+      .toUpperCase()
   }
 
-  const handleSave = async () => {
-    setIsLoading(true)
-    try {
-      // Update user name
-      const { error: userError } = await supabase.from("users").update({ full_name: fullName }).eq("id", user.id)
-
-      if (userError) throw userError
-
-      // Update lawyer headline if applicable
-      if (user.role === "lawyer" && lawyerProfile) {
-        const { error: profileError } = await supabase
-          .from("lawyer_profiles")
-          .update({ headline: headline })
-          .eq("user_id", user.id)
-
-        if (profileError) throw profileError
-      }
-
-      toast({
-        title: "Profile updated",
-        description: "Your profile information has been updated successfully.",
-      })
-
-      setIsEditing(false)
-      router.refresh()
-    } catch (error: any) {
-      console.error("Error updating profile:", error)
-      toast({
-        title: "Error",
-        description: error.message || "Failed to update profile. Please try again.",
-        variant: "destructive",
-      })
-    } finally {
-      setIsLoading(false)
+  const getSpecializationLabel = (spec: string) => {
+    const labels: { [key: string]: string } = {
+      family: "Family Law",
+      criminal: "Criminal Defense",
+      corporate: "Corporate Law",
+      property: "Property Law",
+      immigration: "Immigration Law",
+      employment: "Employment Law",
+      intellectual_property: "Intellectual Property",
+      tax: "Tax Law",
+      personal_injury: "Personal Injury",
+      other: "Other",
     }
+    return labels[spec] || spec
   }
 
   return (
-    <Card className="border-none shadow-none bg-muted/30">
+    <Card>
       <CardContent className="p-6">
-        <div className="relative">
-          <div className="h-32 md:h-48 w-full rounded-lg bg-gradient-to-r from-primary/20 to-secondary/20 mb-16"></div>
-          <div className="absolute left-6 -bottom-12">
-            <div className="relative">
-              <Avatar className="h-24 w-24 border-4 border-background">
-                <AvatarImage src={avatarUrl || "/placeholder.svg"} alt={user?.full_name || "User"} />
-                <AvatarFallback className="text-2xl">{user?.full_name?.charAt(0) || "U"}</AvatarFallback>
-              </Avatar>
-              <Button
-                size="icon"
-                variant="secondary"
-                className="absolute bottom-0 right-0 h-8 w-8 rounded-full"
-                onClick={() => fileInputRef.current?.click()}
-                disabled={isLoading}
-              >
-                {isLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Camera className="h-4 w-4" />}
-              </Button>
-              <input type="file" ref={fileInputRef} className="hidden" accept="image/*" onChange={handleImageUpload} />
+        <div className="flex flex-col md:flex-row gap-6">
+          {/* Avatar and Basic Info */}
+          <div className="flex flex-col items-center md:items-start">
+            <Avatar className="h-24 w-24 mb-4">
+              <AvatarImage src={user?.avatar_url || "/placeholder.svg"} alt={user?.full_name} />
+              <AvatarFallback className="text-lg bg-blue-100 text-blue-600">
+                {getInitials(user?.full_name || "U")}
+              </AvatarFallback>
+            </Avatar>
+
+            <div className="text-center md:text-left">
+              <h1 className="text-2xl font-bold">{user?.full_name || "User"}</h1>
+              <div className="flex items-center gap-2 mt-1">
+                <Badge variant={user?.role === "lawyer" ? "default" : "secondary"}>
+                  {user?.role === "lawyer" ? "Lawyer" : "Client"}
+                </Badge>
+                {user?.role === "lawyer" && lawyerProfile?.is_available !== undefined && (
+                  <Badge variant={lawyerProfile.is_available ? "default" : "destructive"}>
+                    {lawyerProfile.is_available ? (
+                      <>
+                        <CheckCircle className="h-3 w-3 mr-1" />
+                        Available
+                      </>
+                    ) : (
+                      <>
+                        <XCircle className="h-3 w-3 mr-1" />
+                        Unavailable
+                      </>
+                    )}
+                  </Badge>
+                )}
+              </div>
             </div>
           </div>
-          <div className="absolute right-6 bottom-6">
-            {isEditing ? (
-              <div className="flex gap-2">
-                <Button variant="outline" onClick={() => setIsEditing(false)} disabled={isLoading}>
-                  Cancel
-                </Button>
-                <Button onClick={handleSave} disabled={isLoading} className="gradient-bg">
-                  {isLoading ? "Saving..." : "Save"}
-                </Button>
-              </div>
-            ) : (
-              <Button variant="outline" onClick={() => setIsEditing(true)}>
-                <Pencil className="mr-2 h-4 w-4" />
-                Edit Profile
-              </Button>
-            )}
-          </div>
-        </div>
 
-        <div className="mt-4 ml-32 space-y-2">
-          {isEditing ? (
-            <div className="space-y-4 max-w-md">
-              <div>
-                <Label htmlFor="fullName">Full Name</Label>
-                <Input
-                  id="fullName"
-                  value={fullName}
-                  onChange={(e) => setFullName(e.target.value)}
-                  className="max-w-md"
-                />
-              </div>
-              {user?.role === "lawyer" && (
-                <div>
-                  <Label htmlFor="headline">Professional Headline</Label>
-                  <Input
-                    id="headline"
-                    value={headline}
-                    onChange={(e) => setHeadline(e.target.value)}
-                    placeholder="e.g., Corporate Lawyer with 10+ years of experience"
-                    className="max-w-md"
-                  />
+          {/* Contact Information */}
+          <div className="flex-1">
+            <div className="grid gap-3">
+              {user?.email && (
+                <div className="flex items-center gap-2 text-sm">
+                  <Mail className="h-4 w-4 text-muted-foreground" />
+                  <span>{user.email}</span>
                 </div>
               )}
-            </div>
-          ) : (
-            <>
-              <h1 className="text-2xl font-bold">{user?.full_name}</h1>
-              {user?.role === "lawyer" && lawyerProfile?.headline && (
-                <p className="text-muted-foreground">{lawyerProfile.headline}</p>
+
+              {user?.phone && (
+                <div className="flex items-center gap-2 text-sm">
+                  <Phone className="h-4 w-4 text-muted-foreground" />
+                  <span>{user.phone}</span>
+                </div>
               )}
-              <p className="text-sm text-muted-foreground">
-                {user?.role === "lawyer" ? "Lawyer" : "Client"} • {user?.email}
-              </p>
-            </>
-          )}
+
+              {user?.location && (
+                <div className="flex items-center gap-2 text-sm">
+                  <MapPin className="h-4 w-4 text-muted-foreground" />
+                  <span>{user.location}</span>
+                </div>
+              )}
+
+              {/* Lawyer-specific information */}
+              {user?.role === "lawyer" && lawyerProfile && (
+                <>
+                  {lawyerProfile.specialization && (
+                    <div className="flex items-center gap-2 text-sm">
+                      <Briefcase className="h-4 w-4 text-muted-foreground" />
+                      <span>{getSpecializationLabel(lawyerProfile.specialization)}</span>
+                    </div>
+                  )}
+
+                  {lawyerProfile.experience > 0 && (
+                    <div className="flex items-center gap-2 text-sm">
+                      <Clock className="h-4 w-4 text-muted-foreground" />
+                      <span>{lawyerProfile.experience} years experience</span>
+                    </div>
+                  )}
+
+                  {lawyerProfile.hourly_rate > 0 && (
+                    <div className="flex items-center gap-2 text-sm">
+                      <Star className="h-4 w-4 text-muted-foreground" />
+                      <span>₹{lawyerProfile.hourly_rate}/hour</span>
+                    </div>
+                  )}
+
+                  {lawyerProfile.languages && (
+                    <div className="flex items-center gap-2 text-sm">
+                      <span className="text-muted-foreground">Languages:</span>
+                      <span>{lawyerProfile.languages}</span>
+                    </div>
+                  )}
+                </>
+              )}
+            </div>
+
+            {/* Bio */}
+            {user?.role === "lawyer" && lawyerProfile?.bio && (
+              <div className="mt-4">
+                <p className="text-sm text-muted-foreground leading-relaxed">{lawyerProfile.bio}</p>
+              </div>
+            )}
+          </div>
         </div>
       </CardContent>
     </Card>

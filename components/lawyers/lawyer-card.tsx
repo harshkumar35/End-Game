@@ -1,10 +1,8 @@
-"use client"
-
-import { Card, CardContent, CardHeader } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
+import { Card, CardContent, CardFooter, CardHeader } from "@/components/ui/card"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
-import { Star, MapPin, Phone, Mail, Calendar } from "lucide-react"
+import { MapPin, Phone, Mail, Clock, Star } from "lucide-react"
 import Link from "next/link"
 
 interface LawyerCardProps {
@@ -13,22 +11,25 @@ interface LawyerCardProps {
     full_name: string
     email: string
     phone?: string
-    specialization: string[]
-    experience_years: number
-    location: string
-    rating: number
-    total_reviews: number
-    hourly_rate?: number
+    location?: string
     avatar_url?: string
-    is_available: boolean
-    bio?: string
+    profile: {
+      specialization: string
+      experience: number
+      hourly_rate?: number
+      bio?: string
+      is_available: boolean
+      languages?: string[]
+    }
   }
 }
 
 export function LawyerCard({ lawyer }: LawyerCardProps) {
+  const { profile } = lawyer
+
   const initials = lawyer.full_name
     .split(" ")
-    .map((name) => name[0])
+    .map((n) => n[0])
     .join("")
     .toUpperCase()
 
@@ -37,84 +38,85 @@ export function LawyerCard({ lawyer }: LawyerCardProps) {
       <CardHeader className="pb-4">
         <div className="flex items-start gap-4">
           <Avatar className="h-16 w-16">
-            <AvatarImage src={lawyer.avatar_url || "/placeholder.svg"} alt={lawyer.full_name} />
-            <AvatarFallback className="text-lg font-semibold">{initials}</AvatarFallback>
+            <AvatarImage src={lawyer.avatar_url || ""} alt={lawyer.full_name} />
+            <AvatarFallback className="text-lg font-semibold bg-primary/10 text-primary">{initials}</AvatarFallback>
           </Avatar>
           <div className="flex-1 min-w-0">
-            <div className="flex items-center justify-between">
-              <h3 className="text-xl font-semibold truncate">{lawyer.full_name}</h3>
-              <div className="flex items-center gap-1">
-                {lawyer.is_available ? (
-                  <Badge variant="default" className="bg-green-100 text-green-800 border-green-200">
-                    Available
-                  </Badge>
-                ) : (
-                  <Badge variant="secondary">Busy</Badge>
-                )}
-              </div>
-            </div>
-            <div className="flex items-center gap-2 mt-1 text-sm text-muted-foreground">
-              <MapPin className="h-4 w-4" />
-              <span>{lawyer.location}</span>
-            </div>
-            <div className="flex items-center gap-2 mt-1">
-              <div className="flex items-center gap-1">
-                <Star className="h-4 w-4 fill-yellow-400 text-yellow-400" />
-                <span className="text-sm font-medium">{lawyer.rating.toFixed(1)}</span>
-                <span className="text-sm text-muted-foreground">({lawyer.total_reviews} reviews)</span>
-              </div>
+            <Link href={`/lawyers/${lawyer.id}`} className="hover:underline">
+              <h3 className="text-xl font-semibold text-foreground group-hover:text-primary transition-colors">
+                {lawyer.full_name}
+              </h3>
+            </Link>
+            <Badge variant="secondary" className="mt-1">
+              {profile.specialization}
+            </Badge>
+            <div className="flex items-center mt-2">
+              <div className={`w-2 h-2 rounded-full mr-2 ${profile.is_available ? "bg-green-500" : "bg-red-500"}`} />
+              <span className="text-sm text-muted-foreground">{profile.is_available ? "Available" : "Busy"}</span>
             </div>
           </div>
         </div>
       </CardHeader>
 
       <CardContent className="space-y-4">
-        {/* Specializations */}
-        <div>
-          <h4 className="text-sm font-medium mb-2">Specializations</h4>
-          <div className="flex flex-wrap gap-2">
-            {lawyer.specialization.slice(0, 3).map((spec) => (
-              <Badge key={spec} variant="outline" className="text-xs">
-                {spec}
-              </Badge>
-            ))}
-            {lawyer.specialization.length > 3 && (
-              <Badge variant="outline" className="text-xs">
-                +{lawyer.specialization.length - 3} more
-              </Badge>
-            )}
-          </div>
-        </div>
-
         {/* Experience and Rate */}
-        <div className="flex items-center justify-between text-sm">
-          <div className="flex items-center gap-1">
-            <Calendar className="h-4 w-4 text-muted-foreground" />
-            <span>{lawyer.experience_years} years exp.</span>
+        <div className="flex justify-between items-center">
+          <div className="flex items-center text-sm text-muted-foreground">
+            <Clock className="h-4 w-4 mr-1" />
+            {profile.experience} years exp.
           </div>
-          {lawyer.hourly_rate && <div className="font-medium">₹{lawyer.hourly_rate}/hour</div>}
+          {profile.hourly_rate && (
+            <div className="flex items-center text-sm font-medium">
+              <Star className="h-4 w-4 mr-1 text-yellow-500" />₹{profile.hourly_rate}/hr
+            </div>
+          )}
         </div>
 
         {/* Bio */}
-        {lawyer.bio && <p className="text-sm text-muted-foreground line-clamp-2">{lawyer.bio}</p>}
+        {profile.bio && <p className="text-sm text-muted-foreground line-clamp-3">{profile.bio}</p>}
 
-        {/* Action Buttons */}
-        <div className="flex gap-2 pt-2">
-          <Button asChild className="flex-1">
-            <Link href={`/lawyers/${lawyer.id}`}>View Profile</Link>
-          </Button>
-          <Button variant="outline" size="icon" asChild>
-            <Link href={`tel:${lawyer.phone}`}>
-              <Phone className="h-4 w-4" />
-            </Link>
-          </Button>
-          <Button variant="outline" size="icon" asChild>
-            <Link href={`mailto:${lawyer.email}`}>
-              <Mail className="h-4 w-4" />
-            </Link>
-          </Button>
-        </div>
+        {/* Location */}
+        {lawyer.location && (
+          <div className="flex items-center text-sm text-muted-foreground">
+            <MapPin className="h-4 w-4 mr-2" />
+            {lawyer.location}
+          </div>
+        )}
+
+        {/* Languages */}
+        {profile.languages && profile.languages.length > 0 && (
+          <div className="flex flex-wrap gap-1">
+            {profile.languages.slice(0, 3).map((lang, index) => (
+              <Badge key={index} variant="outline" className="text-xs">
+                {lang}
+              </Badge>
+            ))}
+            {profile.languages.length > 3 && (
+              <Badge variant="outline" className="text-xs">
+                +{profile.languages.length - 3} more
+              </Badge>
+            )}
+          </div>
+        )}
       </CardContent>
+
+      <CardFooter className="pt-0 flex gap-2">
+        <Button asChild size="sm" className="flex-1">
+          <Link href={`/lawyers/${lawyer.id}`}>View Profile</Link>
+        </Button>
+        {lawyer.phone && (
+          <Button asChild size="sm" variant="outline">
+            <a href={`tel:${lawyer.phone}`}>
+              <Phone className="h-4 w-4" />
+            </a>
+          </Button>
+        )}
+        <Button asChild size="sm" variant="outline">
+          <a href={`mailto:${lawyer.email}`}>
+            <Mail className="h-4 w-4" />
+          </a>
+        </Button>
+      </CardFooter>
     </Card>
   )
 }

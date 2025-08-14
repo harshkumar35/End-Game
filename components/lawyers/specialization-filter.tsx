@@ -1,253 +1,93 @@
 "use client"
 
+import type React from "react"
+
 import { useState } from "react"
+import { useRouter, useSearchParams } from "next/navigation"
 import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
-import { Badge } from "@/components/ui/badge"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { Search, X, Filter } from "lucide-react"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import { Search, Filter } from "lucide-react"
 
 interface SpecializationFilterProps {
-  specializations: string[]
-  selectedSpecializations: string[]
-  onSpecializationChange: (specializations: string[]) => void
-  searchQuery: string
-  onSearchChange: (query: string) => void
-  locationFilter: string
-  onLocationChange: (location: string) => void
-  experienceFilter: number
-  onExperienceChange: (years: number) => void
-  availableOnly: boolean
-  onAvailableOnlyChange: (available: boolean) => void
+  searchParams: { specialization?: string; search?: string }
+  uniqueSpecializations: string[]
 }
 
-const COMMON_SPECIALIZATIONS = [
-  "Criminal Law",
-  "Civil Law",
-  "Corporate Law",
-  "Family Law",
-  "Property Law",
-  "Labor Law",
-  "Tax Law",
-  "Immigration Law",
-  "Intellectual Property",
-  "Environmental Law",
-  "Constitutional Law",
-  "Consumer Protection",
-]
+export function SpecializationFilter({ searchParams, uniqueSpecializations }: SpecializationFilterProps) {
+  const router = useRouter()
+  const params = useSearchParams()
+  const [searchTerm, setSearchTerm] = useState(searchParams.search || "")
 
-const EXPERIENCE_OPTIONS = [
-  { label: "Any Experience", value: 0 },
-  { label: "1+ Years", value: 1 },
-  { label: "3+ Years", value: 3 },
-  { label: "5+ Years", value: 5 },
-  { label: "10+ Years", value: 10 },
-]
-
-export function SpecializationFilter({
-  specializations,
-  selectedSpecializations,
-  onSpecializationChange,
-  searchQuery,
-  onSearchChange,
-  locationFilter,
-  onLocationChange,
-  experienceFilter,
-  onExperienceChange,
-  availableOnly,
-  onAvailableOnlyChange,
-}: SpecializationFilterProps) {
-  const [isExpanded, setIsExpanded] = useState(false)
-
-  const handleSpecializationToggle = (specialization: string) => {
-    if (selectedSpecializations.includes(specialization)) {
-      onSpecializationChange(selectedSpecializations.filter((s) => s !== specialization))
+  const handleSearch = (e: React.FormEvent) => {
+    e.preventDefault()
+    const newParams = new URLSearchParams(params.toString())
+    if (searchTerm) {
+      newParams.set("search", searchTerm)
     } else {
-      onSpecializationChange([...selectedSpecializations, specialization])
+      newParams.delete("search")
     }
+    router.push(`/lawyers?${newParams.toString()}`)
   }
 
-  const clearAllFilters = () => {
-    onSpecializationChange([])
-    onSearchChange("")
-    onLocationChange("")
-    onExperienceChange(0)
-    onAvailableOnlyChange(false)
+  const handleSpecializationChange = (value: string) => {
+    const newParams = new URLSearchParams(params.toString())
+    if (value && value !== "all") {
+      newParams.set("specialization", value)
+    } else {
+      newParams.delete("specialization")
+    }
+    router.push(`/lawyers?${newParams.toString()}`)
   }
 
-  const hasActiveFilters =
-    selectedSpecializations.length > 0 ||
-    searchQuery.length > 0 ||
-    locationFilter.length > 0 ||
-    experienceFilter > 0 ||
-    availableOnly
+  const clearFilters = () => {
+    setSearchTerm("")
+    router.push("/lawyers")
+  }
 
   return (
-    <Card>
-      <CardHeader>
-        <div className="flex items-center justify-between">
-          <CardTitle className="flex items-center gap-2">
-            <Filter className="h-5 w-5" />
-            Filter Lawyers
-          </CardTitle>
-          {hasActiveFilters && (
-            <Button variant="ghost" size="sm" onClick={clearAllFilters}>
-              <X className="h-4 w-4 mr-1" />
-              Clear All
-            </Button>
-          )}
-        </div>
-      </CardHeader>
-
-      <CardContent className="space-y-6">
-        {/* Search */}
-        <div className="relative">
-          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+    <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center">
+      {/* Search Form */}
+      <form onSubmit={handleSearch} className="flex gap-2 flex-1">
+        <div className="relative flex-1">
+          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
           <Input
-            placeholder="Search lawyers by name..."
-            value={searchQuery}
-            onChange={(e) => onSearchChange(e.target.value)}
+            type="text"
+            placeholder="Search lawyers by name, specialization, or location..."
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
             className="pl-10"
           />
         </div>
+        <Button type="submit" size="default">
+          Search
+        </Button>
+      </form>
 
-        {/* Location Filter */}
-        <div>
-          <label className="text-sm font-medium mb-2 block">Location</label>
-          <Input
-            placeholder="Enter city or state..."
-            value={locationFilter}
-            onChange={(e) => onLocationChange(e.target.value)}
-          />
-        </div>
-
-        {/* Experience Filter */}
-        <div>
-          <label className="text-sm font-medium mb-2 block">Experience</label>
-          <div className="grid grid-cols-2 gap-2">
-            {EXPERIENCE_OPTIONS.map((option) => (
-              <Button
-                key={option.value}
-                variant={experienceFilter === option.value ? "default" : "outline"}
-                size="sm"
-                onClick={() => onExperienceChange(option.value)}
-                className="justify-start"
-              >
-                {option.label}
-              </Button>
+      {/* Specialization Filter */}
+      <div className="flex gap-2 items-center">
+        <Filter className="h-4 w-4 text-muted-foreground" />
+        <Select value={searchParams.specialization || "all"} onValueChange={handleSpecializationChange}>
+          <SelectTrigger className="w-[200px]">
+            <SelectValue placeholder="All Specializations" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">All Specializations</SelectItem>
+            {uniqueSpecializations.map((specialization) => (
+              <SelectItem key={specialization} value={specialization}>
+                {specialization}
+              </SelectItem>
             ))}
-          </div>
-        </div>
+          </SelectContent>
+        </Select>
+      </div>
 
-        {/* Availability Filter */}
-        <div className="flex items-center space-x-2">
-          <input
-            type="checkbox"
-            id="available-only"
-            checked={availableOnly}
-            onChange={(e) => onAvailableOnlyChange(e.target.checked)}
-            className="rounded border-gray-300"
-          />
-          <label htmlFor="available-only" className="text-sm font-medium">
-            Show only available lawyers
-          </label>
-        </div>
-
-        {/* Specializations */}
-        <div>
-          <div className="flex items-center justify-between mb-2">
-            <label className="text-sm font-medium">Specializations</label>
-            <Button variant="ghost" size="sm" onClick={() => setIsExpanded(!isExpanded)}>
-              {isExpanded ? "Show Less" : "Show More"}
-            </Button>
-          </div>
-
-          <div className="space-y-2">
-            {/* Selected Specializations */}
-            {selectedSpecializations.length > 0 && (
-              <div className="flex flex-wrap gap-2">
-                {selectedSpecializations.map((spec) => (
-                  <Badge
-                    key={spec}
-                    variant="default"
-                    className="cursor-pointer"
-                    onClick={() => handleSpecializationToggle(spec)}
-                  >
-                    {spec}
-                    <X className="h-3 w-3 ml-1" />
-                  </Badge>
-                ))}
-              </div>
-            )}
-
-            {/* Available Specializations */}
-            <div className="flex flex-wrap gap-2">
-              {(isExpanded ? COMMON_SPECIALIZATIONS : COMMON_SPECIALIZATIONS.slice(0, 6))
-                .filter((spec) => !selectedSpecializations.includes(spec))
-                .map((spec) => (
-                  <Badge
-                    key={spec}
-                    variant="outline"
-                    className="cursor-pointer hover:bg-muted"
-                    onClick={() => handleSpecializationToggle(spec)}
-                  >
-                    {spec}
-                  </Badge>
-                ))}
-            </div>
-
-            {/* Custom specializations from database */}
-            {specializations
-              .filter((spec) => !COMMON_SPECIALIZATIONS.includes(spec) && !selectedSpecializations.includes(spec))
-              .slice(0, isExpanded ? undefined : 3)
-              .map((spec) => (
-                <Badge
-                  key={spec}
-                  variant="outline"
-                  className="cursor-pointer hover:bg-muted"
-                  onClick={() => handleSpecializationToggle(spec)}
-                >
-                  {spec}
-                </Badge>
-              ))}
-          </div>
-        </div>
-
-        {/* Active Filters Summary */}
-        {hasActiveFilters && (
-          <div className="pt-4 border-t">
-            <p className="text-sm text-muted-foreground">
-              {selectedSpecializations.length > 0 && (
-                <span>{selectedSpecializations.length} specialization(s) selected</span>
-              )}
-              {searchQuery && (
-                <span>
-                  {selectedSpecializations.length > 0 ? ", " : ""}searching for "{searchQuery}"
-                </span>
-              )}
-              {locationFilter && (
-                <span>
-                  {selectedSpecializations.length > 0 || searchQuery ? ", " : ""}in {locationFilter}
-                </span>
-              )}
-              {experienceFilter > 0 && (
-                <span>
-                  {selectedSpecializations.length > 0 || searchQuery || locationFilter ? ", " : ""}
-                  {experienceFilter}+ years experience
-                </span>
-              )}
-              {availableOnly && (
-                <span>
-                  {selectedSpecializations.length > 0 || searchQuery || locationFilter || experienceFilter > 0
-                    ? ", "
-                    : ""}
-                  available only
-                </span>
-              )}
-            </p>
-          </div>
-        )}
-      </CardContent>
-    </Card>
+      {/* Clear Filters */}
+      {(searchParams.search || searchParams.specialization) && (
+        <Button variant="outline" onClick={clearFilters}>
+          Clear Filters
+        </Button>
+      )}
+    </div>
   )
 }
